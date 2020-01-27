@@ -35,6 +35,13 @@ GLfloat vertices[] =
 // vertex array object
 unsigned int vertexArrayObjID;
 
+
+void OnTimer(int value)
+{
+  glutPostRedisplay();
+  glutTimerFunc(20, &OnTimer, value);
+}
+
 void init(void)
 {
 	// vertex buffer object, used for uploading the geometry
@@ -52,6 +59,8 @@ void init(void)
 	// Load and compile shader
 	program = loadShaders("lab1-3.vert", "lab1-3.frag");
 	printError("init shader");
+
+
 
 	// Upload geometry to the GPU:
 
@@ -75,14 +84,37 @@ void init(void)
 
 void display(void)
 {
+	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
+
 	printError("pre display");
+
+	int a = t/500 * 3.14;
+	GLfloat rotationMatrix[] =
+	{
+	  cos(a), -sin(a), 0.0f, 0.0f,
+	  sin(a), cos(a), 0.0f, 0.0f,
+	  0.0f, 0.0f, 1.0f, 0.0f,
+	  0.0f, 0.0f, 0.0f, 1.0f
+	};
+
+	// GLfloat rotationMatrix[] =
+	// {
+	//   0.7f*t, -0.7f, 0.0f, 0.0f,
+	//   0.7f, 0.7f, 0.0f, 0.0f,
+	//   0.0f, 0.0f, 1.0f, 0.0f,
+	//   0.0f, 0.0f, 0.0f, 1.0f
+	// };
+
+	// Reference to shader program
+	// GLuint program;
+	// program = loadShaders("lab1-3.vert", "lab1-3.frag");
 
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glBindVertexArray(vertexArrayObjID);	// Select VAO
 	glDrawArrays(GL_TRIANGLES, 0, 3);	// draw object
-
+	glUniformMatrix4fv(0.0, 1, GL_TRUE, rotationMatrix);
 	printError("display");
 
 	glutSwapBuffers();
@@ -95,6 +127,9 @@ int main(int argc, char *argv[])
 	glutCreateWindow ("GL3 white triangle example");
 	glutDisplayFunc(display);
 	init ();
+	// time
+	glutTimerFunc(20, &OnTimer, 0);
+
 	glutMainLoop();
 	return 0;
 }
