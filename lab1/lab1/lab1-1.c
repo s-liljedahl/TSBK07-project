@@ -26,7 +26,7 @@ GLfloat vertices[] =
 // vertex array object
 unsigned int vertexArrayObjID;
 
-void init(void)
+void it(void)
 {
 	// vertex buffer object, used for uploading the geometry
 	unsigned int vertexBufferObjID;
