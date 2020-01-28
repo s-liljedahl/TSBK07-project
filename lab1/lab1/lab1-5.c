@@ -16,6 +16,10 @@
 #include "VectorUtils3.h"
 #include <math.h>
 
+// Globals
+// Data would normally be read from files
+
+
 // Reference to shader program
 GLuint program;
 
@@ -29,28 +33,49 @@ GLfloat myMatrix[] =
 
 GLfloat vertices[] =
 {
-	0.0f, 0.5f, 0.0f,
-	-0.5f, -0.5f, 0.5f,
-	0.5f, -0.5f, 0.5f,
+		// front
+		0.0f, 0.5f, 0.0f,
+		-0.5f, -0.5f, 0.5f,
+		0.5f, -0.5f, 0.5f,
 
-	0.0f, 0.5f, 0.0f,
-	-0.5f, -0.5f, 0.5f,
-	0.5f, -0.5f, 0.5f,
+		// Right
+		0.0f, 0.5f, 0.0f,
+		0.5f, -0.5f, 0.5f,
+		0.5f, -0.5f, -0.5f,
 
-	0.0f, 0.5f, 0.0f,
-	-0.5f, -0.5f, 0.5f,
-	0.5f, -0.5f, 0.5f,
+		// Back
+		0.0f, 0.5f, 0.0f,
+		0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
 
-	0.0f, 0.5f, 0.0f,
-	-0.5f, -0.5f, 0.5f,
-	0.5f, -0.5f, 0.5f,
+		// Left
+		0.0f, 0.5f, 0.0f,
+		-0.5f,-0.5f,-0.5f,
+		-0.5f,-0.5f, 0.5f,
+
+		// Bottom 1
+		-0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f, -0.5f,
+
+		// Bottom 2
+		-0.5f, -0.5f,  0.5f,
+		 -0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+
 };
 
 
-// Globals
-// Data would normally be read from files
 GLfloat colors[] =
 {
+	0.7f, 0.0f,0.7f,
+	0.0f,1.0f,0.0f,
+	0.58f,0.58f,0.58f,
+
+	0.7f, 0.0f,0.7f,
+	0.0f,1.0f,0.0f,
+	0.58f,0.58f,0.58f,
+	
 	0.7f, 0.0f,0.7f,
 	0.0f,1.0f,0.0f,
 	0.58f,0.58f,0.58f,
@@ -59,13 +84,14 @@ GLfloat colors[] =
 	1.0f, 0.5f, 0.1f,
 	0.0f, 0.0f, 0.1f,
 
-	1.0f, 0.0f, 0.1f,
-	1.0f, 0.0f, 0.1f,
-	1.0f, 0.0f, 0.1f,
+	0.4f, 0.0f,0.7f,
+	0.0f, 0.5f,0.0f,
+	0.58f,0.58f,0.58f,
+	
+	0.1f, 0.2f,0.7f,
+	0.0f,1.0f,0.5f,
+	0.58f,0.0f,0.58f,
 
-	0.0f, 1.0f, 0.1f,
-	0.0f, 1.0f, 0.1f,
-	0.0f, 1.0f, 0.1f,
 };
 
 void OnTimer(int value)
@@ -88,10 +114,8 @@ void init(void)
 	// GL inits
 	glClearColor(1.0,0.2,0.5,0); //bakgrundsfärg
 
-	//glDisable(GL_DEPTH_TEST);
 	glEnable(GL_DEPTH_TEST);
-	//  glDisable(GL_CULL_FACE);
-	glEnable(GL_CULL_FACE);
+	// glEnable(GL_CULL_FACE);
 
 	printError("GL inits");
 
@@ -111,7 +135,7 @@ void init(void)
 
 	// VBO for vertex data
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID);
-	glBufferData(GL_ARRAY_BUFFER, 4*9*sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, (6*9)*sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 
 	// Bind in variable
 	glVertexAttribPointer(glGetAttribLocation(program, "in_Position"), 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -120,11 +144,11 @@ void init(void)
 
 	// VBO for COLOR data
 	glBindBuffer(GL_ARRAY_BUFFER, colorBufferObjID);
-	glBufferData(GL_ARRAY_BUFFER, 4*9*sizeof(GLfloat), colors, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, (6*9)*sizeof(GLfloat), colors, GL_STATIC_DRAW);
 
-	// Bind COLOR in variable
+// Bind COLOR in variable
 	glVertexAttribPointer(glGetAttribLocation(program, "inNormal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
-	// Array COLOR is active
+// Array COLOR is active
 	glEnableVertexAttribArray(glGetAttribLocation(program, "inNormal"));
 
 	// End of upload of geometry
@@ -140,29 +164,22 @@ void display(void)
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
-	GLfloat a = sin(t / 1000);
+	GLfloat a = (t / 1000);
 	GLfloat b = cos(t / 2000);
 
-	GLfloat myMatrix[] =
-	{
-	  0.7f * a, -0.7f, 0.0f, 0.0f,
-	  0.7f, 0.7f * a, 0.0f, 0.0f,
-	  0.0f, 0.0f, 1.0f, 0.0f,
-	  0.0f, 0.0f, 0.0f, 1.0f
-	};
 
 	mat4 ry = Ry(a);
 	mat4 rx = Rx(b);
-
+	
 	mat4 res = Mult(rx, ry);
 
 	// clear the screen
 	// glClear(GL_COLOR_BUFFER_BIT);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glBindVertexArray(vertexArrayObjID);	// Select VAO
-	glDrawArrays(GL_TRIANGLES, 0, 3);	// draw object
-
-	glUniformMatrix4fv(glGetAttribLocation(program, "myMatrix"), 1, GL_TRUE, myMatrix);
+	glDrawArrays(GL_TRIANGLES, 0, 3*6);	// draw object
+	
+	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, res.m);
 
 	printError("display");
 	glutSwapBuffers();
