@@ -35,10 +35,17 @@ GLfloat vertices[] =
 // vertex array object
 unsigned int vertexArrayObjID;
 
+<<<<<<< Updated upstream
 
 void OnTimer(int value)
 {
   glutPostRedisplay();
+=======
+void OnTimer(int value)
+{
+  glutPostRedisplay();
+
+>>>>>>> Stashed changes
   glutTimerFunc(20, &OnTimer, value);
 }
 
@@ -81,12 +88,12 @@ void init(void)
 	printError("init arrays");
 }
 
-
 void display(void)
 {
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
 
 	printError("pre display");
+  GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
 
 	int a = t/500 * 3.14;
 	GLfloat rotationMatrix[] =
@@ -111,7 +118,6 @@ void display(void)
 
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT);
-
 	glBindVertexArray(vertexArrayObjID);	// Select VAO
 	glDrawArrays(GL_TRIANGLES, 0, 3);	// draw object
 	glUniformMatrix4fv(glGetAttribLocation(program, "myMatrix"), 1, GL_TRUE, rotationMatrix);
@@ -127,10 +133,14 @@ int main(int argc, char *argv[])
 	glutCreateWindow ("GL3 white triangle example");
 	glutDisplayFunc(display);
 	init ();
+<<<<<<< Updated upstream
 
 	// Re-run every 20 milliseconds
 	glutTimerFunc(20, &OnTimer, 0);
 
+=======
+  glutTimerFunc(20, &OnTimer, 0);
+>>>>>>> Stashed changes
 	glutMainLoop();
 	return 0;
 }
