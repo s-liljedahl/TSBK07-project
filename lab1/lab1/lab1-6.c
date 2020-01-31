@@ -14,11 +14,11 @@
 #include "MicroGlut.h"
 #include "GL_utilities.h"
 #include "VectorUtils3.h"
+#include "loadobj.h"
 #include <math.h>
 
 // Globals
 // Data would normally be read from files
-
 
 // Reference to shader program
 GLuint program;
@@ -101,12 +101,21 @@ void OnTimer(int value)
 }
 
 // vertex array object
-unsigned int vertexArrayObjID;
+unsigned int bunnyVertexArrayObjID;
+Model *m;
 
 void init(void)
 {
+	printError("GL inits");
+
+	m = LoadModel("bunny.obj");
+
+	unsigned int bunnyVertexBufferObjID;
+	unsigned int bunnyIndexBufferObjID;
+	unsigned int bunnyNormalBufferObjID;
+
 	// vertex buffer object, used for uploading the geometry
-	unsigned int vertexBufferObjID;
+	// unsigned int vertexBufferObjID;
 	unsigned int colorBufferObjID;
 
 	dumpInfo();
@@ -116,40 +125,33 @@ void init(void)
 
 	glEnable(GL_DEPTH_TEST);
 	// glEnable(GL_CULL_FACE);
+	glDisable(GL_CULL_FACE);
 
-	printError("GL inits");
 
 	// Load and compile shader
-	program = loadShaders("lab1-5.vert", "lab1-5.frag");
+	program = loadShaders("lab1-6.vert", "lab1-6.frag");
 	printError("init shader");
 
 	// Upload geometry to the GPU:
-
-	// Allocate and activate Vertex Array Object
-	glGenVertexArrays(1, &vertexArrayObjID);
-	glBindVertexArray(vertexArrayObjID);
-
-	// Allocate Vertex Buffer Objects
-	glGenBuffers(1, &vertexBufferObjID);
-	glGenBuffers(1, &colorBufferObjID);
+	glGenVertexArrays(1, &bunnyVertexArrayObjID);
+	glGenBuffers(1, &bunnyVertexBufferObjID);
+	glGenBuffers(1, &bunnyIndexBufferObjID);
+	glGenBuffers(1, &bunnyNormalBufferObjID);
+	glBindVertexArray(bunnyVertexArrayObjID);
 
 	// VBO for vertex data
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjID);
-	glBufferData(GL_ARRAY_BUFFER, (6*9)*sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-
-	// Bind in variable
-	glVertexAttribPointer(glGetAttribLocation(program, "in_Position"), 3, GL_FLOAT, GL_FALSE, 0, 0);
-	// Array is active
+	glBindBuffer(GL_ARRAY_BUFFER, bunnyVertexBufferObjID);
+	glBufferData(GL_ARRAY_BUFFER, m->numVertices*3*sizeof(GLfloat), m->vertexArray, GL_STATIC_DRAW);
+	glVertexAttribPointer(glGetAttribLocation(program, "in_Position"), 3, GL_FLOAT, GL_FALSE, 0, 0); 
 	glEnableVertexAttribArray(glGetAttribLocation(program, "in_Position"));
 
-	// VBO for COLOR data
-	glBindBuffer(GL_ARRAY_BUFFER, colorBufferObjID);
-	glBufferData(GL_ARRAY_BUFFER, (6*9)*sizeof(GLfloat), colors, GL_STATIC_DRAW);
-
-// Bind COLOR in variable
+	// VBO for normal data
+	glBindBuffer(GL_ARRAY_BUFFER, bunnyNormalBufferObjID);
+	glBufferData(GL_ARRAY_BUFFER, m->numVertices*3*sizeof(GLfloat), m->normalArray, GL_STATIC_DRAW);
 	glVertexAttribPointer(glGetAttribLocation(program, "inNormal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
-// Array COLOR is active
 	glEnableVertexAttribArray(glGetAttribLocation(program, "inNormal"));
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bunnyIndexBufferObjID);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m->numIndices*sizeof(GLuint), m->indexArray, GL_STATIC_DRAW);
 
 	// End of upload of geometry
 
@@ -159,27 +161,24 @@ void init(void)
 
 void display(void)
 {
-	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
 	printError("pre display");
 
-	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
 
 	GLfloat a = (t / 1000);
 	GLfloat b = cos(t / 2000);
-
-
 	mat4 ry = Ry(a);
 	mat4 rx = Rx(b);
-	
 	mat4 res = Mult(rx, ry);
 
-	// clear the screen
-	// glClear(GL_COLOR_BUFFER_BIT);
+	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glBindVertexArray(vertexArrayObjID);	// Select VAO
-	glDrawArrays(GL_TRIANGLES, 0, 3*6);	// draw object
+	glDisable(GL_CULL_FACE);
 	
-	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, res.m);
+	glBindVertexArray(bunnyVertexArrayObjID);    // Select VAO
+	glDrawElements(GL_TRIANGLES, m->numIndices, GL_UNSIGNED_INT, 0L);
+
+// glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, res.m);
 
 	printError("display");
 	glutSwapBuffers();
@@ -194,7 +193,7 @@ int main(int argc, char *argv[])
 	init ();
 
 	// Re-run every 20 milliseconds
-	glutTimerFunc(20, &OnTimer, 0);
+	// glutTimerFunc(20, &OnTimer, 0);
 
 	glutMainLoop();
 	return 0;
