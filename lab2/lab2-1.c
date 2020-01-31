@@ -108,8 +108,9 @@ void init(void)
 {
 	printError("GL inits");
 
-	m = LoadModel("bunny.obj");
+	m = LoadModel("bunnyplus.obj");
 
+	unsigned int bunnyTexCoordBufferObjID;
 	unsigned int bunnyVertexBufferObjID;
 	unsigned int bunnyIndexBufferObjID;
 	unsigned int bunnyNormalBufferObjID;
@@ -129,12 +130,15 @@ void init(void)
 
 
 	// Load and compile shader
-	program = loadShaders("lab1-6.vert", "lab1-6.frag");
+	program = loadShaders("lab2-1.vert", "lab2-1.frag");
 	printError("init shader");
 
 	// Upload geometry to the GPU:
 	glGenVertexArrays(1, &bunnyVertexArrayObjID);
 	glBindVertexArray(bunnyVertexArrayObjID);
+
+	glGenBuffers(1, &bunnyTexCoordBufferObjID);    
+
 
 	glGenBuffers(1, &bunnyVertexBufferObjID);
 	glGenBuffers(1, &bunnyIndexBufferObjID);
@@ -156,6 +160,14 @@ void init(void)
 
 	// End of upload of geometry
 
+	if (m->texCoordArray != NULL)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, bunnyTexCoordBufferObjID);
+        glBufferData(GL_ARRAY_BUFFER, m->numVertices*2*sizeof(GLfloat), m->texCoordArray, GL_STATIC_DRAW);
+        glVertexAttribPointer(glGetAttribLocation(program, "inTexCoord"), 2, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(glGetAttribLocation(program, "inTexCoord"));
+    }
+	
 	printError("init arrays");
 }
 
@@ -179,7 +191,7 @@ void display(void)
 	glBindVertexArray(bunnyVertexArrayObjID);    // Select VAO
 	glDrawElements(GL_TRIANGLES, m->numIndices, GL_UNSIGNED_INT, 0L);
 
-  glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, res.m);
+  	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, res.m);
 
 	printError("display");
 	glutSwapBuffers();
