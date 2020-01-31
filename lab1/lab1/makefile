@@ -1,7 +1,7 @@
 # set this variable to the director in which you saved the common files
 commondir = ../common/
 
-all : lab1-1 lab1-2 lab1-3
+all : lab1-1 lab1-2 lab1-3 lab1-4 lab1-5
 
 mac: lab1-1.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(commondir)loadobj.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m
 	gcc -Wall -o lab1-1 -I$(commondir) -I../common/Mac -DGL_GLEXT_PROTOTYPES lab1-1.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m -framework Cocoa -framework OpenGL
@@ -19,13 +19,13 @@ lab1-3 : lab1-3.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(common
 				gcc -Wall -o lab1-3 -I$(commondir) -I../common/Mac -DGL_GLEXT_PROTOTYPES lab1-3.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m -framework Cocoa -framework OpenGL -lm
 
 lab1-4 : lab1-4.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(commondir)loadobj.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m
-				gcc -Wall -o lab1-4 -I$(commondir) -I../common/Mac -DGL_GLEXT_PROTOTYPES lab1-4.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m -framework Cocoa -framework OpenGL
+				gcc -Wall -o lab1-4 -I$(commondir) -I../common/Mac -DGL_GLEXT_PROTOTYPES lab1-4.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m -framework Cocoa -framework OpenGL -lm
 
 lab1-5 : lab1-5.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(commondir)loadobj.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m
-				gcc -Wall -o lab1-5 -I$(commondir) -I../common/Mac -DGL_GLEXT_PROTOTYPES lab1-5.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m -framework Cocoa -framework OpenGL
+				gcc -Wall -o lab1-5 -I$(commondir) -I../common/Mac -DGL_GLEXT_PROTOTYPES lab1-5.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m -framework Cocoa -framework OpenGL -lm
 
 lab1-6 : lab1-6.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(commondir)loadobj.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m
-				gcc -Wall -o lab1-6 -I$(commondir) -I../common/Mac -DGL_GLEXT_PROTOTYPES lab1-6.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m -framework Cocoa -framework OpenGL
+				gcc -Wall -o lab1-6 -I$(commondir) -I../common/Mac -DGL_GLEXT_PROTOTYPES lab1-6.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m -framework Cocoa -framework OpenGL -lm
 
 
 linux 3: lab1-3.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(commondir)loadobj.c $(commondir)LoadTGA.c $(commondir)Linux/MicroGlut.c
