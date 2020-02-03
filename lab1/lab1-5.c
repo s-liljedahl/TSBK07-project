@@ -54,12 +54,12 @@ GLfloat vertices[] =
 		-0.5f,-0.5f, 0.5f,
 
 		// Bottom 1
-		-0.5f, -0.5f,  0.5f,
 		 0.5f, -0.5f,  0.5f,
+		 -0.5f, -0.5f,  0.5f,
 		 0.5f, -0.5f, -0.5f,
 
 		// Bottom 2
-		-0.5f, -0.5f,  0.5f,
+		 -0.5f, -0.5f,  0.5f,
 		 -0.5f, -0.5f, -0.5f,
 		 0.5f, -0.5f, -0.5f,
 
@@ -75,7 +75,7 @@ GLfloat colors[] =
 	0.7f, 0.0f,0.7f,
 	0.0f,1.0f,0.0f,
 	0.58f,0.58f,0.58f,
-	
+
 	0.7f, 0.0f,0.7f,
 	0.0f,1.0f,0.0f,
 	0.58f,0.58f,0.58f,
@@ -87,7 +87,7 @@ GLfloat colors[] =
 	0.4f, 0.0f,0.7f,
 	0.0f, 0.5f,0.0f,
 	0.58f,0.58f,0.58f,
-	
+
 	0.1f, 0.2f,0.7f,
 	0.0f,1.0f,0.5f,
 	0.58f,0.0f,0.58f,
@@ -115,7 +115,7 @@ void init(void)
 	glClearColor(1.0,0.2,0.5,0); //bakgrundsfärg
 
 	glEnable(GL_DEPTH_TEST);
-	// glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 
 	printError("GL inits");
 
@@ -152,13 +152,13 @@ void init(void)
 	glEnableVertexAttribArray(glGetAttribLocation(program, "inNormal"));
 
 	// End of upload of geometry
-
 	printError("init arrays");
 }
 
 
 void display(void)
 {
+	// glCullFace(GL_FRONT);
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
 	printError("pre display");
 
@@ -170,16 +170,21 @@ void display(void)
 
 	mat4 ry = Ry(a);
 	mat4 rx = Rx(b);
-	
+
 	mat4 res = Mult(rx, ry);
 
 	// clear the screen
 	// glClear(GL_COLOR_BUFFER_BIT);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glBindVertexArray(vertexArrayObjID);	// Select VAO
-	glDrawArrays(GL_TRIANGLES, 0, 3*6);	// draw object
-	
+
+	// glCullFace(GL_FRONT);
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, res.m);
+	glDrawArrays(GL_TRIANGLES, 0, 3*6);	// draw object
+
+	// glCullFace(GL_BACK);
+	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, res.m);
+	glDrawArrays(GL_TRIANGLES, 0, 3*6);	// draw object
 
 	printError("display");
 	glutSwapBuffers();
