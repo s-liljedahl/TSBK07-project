@@ -103,15 +103,15 @@ GLfloat colors[] =
 
 };
 
-GLfloat projectionMatrix[] = 
-{    
+GLfloat projectionMatrix[] =
+{
     2.0f*near/(right-left), 0.0f, (right+left)/(right-left), 0.0f,
 
     0.0f, 2.0f*near/(top-bottom), (top+bottom)/(top-bottom), 0.0f,
 
     0.0f, 0.0f, -(far + near)/(far - near), -2*far*near/(far - near),
 
-    0.0f, 0.0f, -1.0f, 0.0f 
+    0.0f, 0.0f, -1.0f, 0.0f
 };
 
 void OnTimer(int value)
@@ -157,7 +157,7 @@ void init(void)
 	glGenVertexArrays(1, &bunnyVertexArrayObjID);
 	glBindVertexArray(bunnyVertexArrayObjID);
 
-	glGenBuffers(1, &bunnyTexCoordBufferObjID);    
+	glGenBuffers(1, &bunnyTexCoordBufferObjID);
 
 
 	glGenBuffers(1, &bunnyVertexBufferObjID);
@@ -227,7 +227,7 @@ void display(void)
     glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, total.m);
     glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view.m);
     glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
-  
+
 
 	printError("display");
 	glutSwapBuffers();
