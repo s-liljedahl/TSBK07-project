@@ -15,5 +15,7 @@ lab2-2 : lab2-2.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(common
 lab2-3 : lab2-3.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(commondir)loadobj.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m
 	gcc -Wall -o lab2-3 -I$(commondir) -I../common/Mac -DGL_GLEXT_PROTOTYPES lab2-3.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m -framework Cocoa -framework OpenGL -lm
 
+lab2-4 : lab2-4.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(commondir)loadobj.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m
+	gcc -Wall -o lab2-4 -I$(commondir) -I../common/Mac -DGL_GLEXT_PROTOTYPES lab2-4.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m -framework Cocoa -framework OpenGL -lm
 clean :
 	rm lab2-1

@@ -198,7 +198,7 @@ void init(void)
 void display(void)
 {
 	printError("pre display");
-    mat4 rot, trans, total;
+    mat4 rot, trans, total, view;
 
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
 
@@ -212,6 +212,10 @@ void display(void)
 
     total = Mult(trans, res);
 
+    view = lookAt(2.0f,2.0f,2.0f,
+                  0.0f,0.0f,-3.0f,
+                  0.0f,1.0f,0.0f);
+
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -221,6 +225,7 @@ void display(void)
 
     glUniform1i(glGetUniformLocation(program, "texUnit"), 0);
     glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, total.m);
+    glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view.m);
     glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
   
 
