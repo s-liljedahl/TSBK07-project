@@ -148,7 +148,7 @@ void display(void)
 	float camx = sin(t / 1000) * radius;
 	float camz = cos(t / 1000) * radius;
 
-	view = lookAt(camx, 0.0f, camz,
+	view = lookAt(rotate_x, 1.0f, rotate_z,
 					0.0f,0.0f,0.0f,
 					0.0f,1.0f,0.0f);
 
