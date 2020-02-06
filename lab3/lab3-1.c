@@ -51,22 +51,19 @@ void OnTimer(int value)
 
 // vertex array object
 unsigned int bunnyVertexArrayObjID;
-Model *blade1;
-Model *blade2;
-// Model *blade3;
-// Model *blade4;
+Model *blade;
 Model *mill;
+Model *roof;
+Model *balcony;
 
 void init(void)
 {
 	printError("GL inits");
 
-	blade1 = LoadModelPlus("blade.obj");
-	blade2 = LoadModelPlus("blade.obj");
-	// blade3 = LoadModelPlus("blade.obj");
-	// blade4 = LoadModelPlus("blade.obj");
-
+	blade = LoadModelPlus("blade.obj");
 	mill = LoadModelPlus("windmill-walls.obj");
+	roof = LoadModelPlus("windmill-roof.obj");
+	balcony = LoadModelPlus("windmill-balcony.obj");
 
 	dumpInfo();
 
@@ -80,48 +77,6 @@ void init(void)
 	// Load and compile shader
 	program = loadShaders("lab3-1.vert", "lab3-1.frag");
 
-	printError("init shader");
-
-	// // Upload geometry to the GPU:
-	// glGenVertexArrays(1, &bunnyVertexArrayObjID);
-	// glBindVertexArray(bunnyVertexArrayObjID);
-	//
-	// glGenBuffers(1, &bunnyTexCoordBufferObjID);
-	//
-	//
-	// glGenBuffers(1, &bunnyVertexBufferObjID);
-	// glGenBuffers(1, &bunnyIndexBufferObjID);
-	// glGenBuffers(1, &bunnyNormalBufferObjID);
-	//
-	// // VBO for vertex data
-	// glBindBuffer(GL_ARRAY_BUFFER, bunnyVertexBufferObjID);
-	// glBufferData(GL_ARRAY_BUFFER, m->numVertices*3*sizeof(GLfloat), m->vertexArray, GL_STATIC_DRAW);
-	// glVertexAttribPointer(glGetAttribLocation(program, "in_Position"), 3, GL_FLOAT, GL_FALSE, 0, 0);
-	// glEnableVertexAttribArray(glGetAttribLocation(program, "in_Position"));
-	//
-	// // VBO for normal data
-	// glBindBuffer(GL_ARRAY_BUFFER, bunnyNormalBufferObjID);
-	// glBufferData(GL_ARRAY_BUFFER, m->numVertices*3*sizeof(GLfloat), m->normalArray, GL_STATIC_DRAW);
-	// glVertexAttribPointer(glGetAttribLocation(program, "inNormal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
-	// glEnableVertexAttribArray(glGetAttribLocation(program, "inNormal"));
-	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bunnyIndexBufferObjID);
-	// glBufferData(GL_ELEMENT_ARRAY_BUFFER, m->numIndices*sizeof(GLuint), m->indexArray, GL_STATIC_DRAW);
-
-	// End of upload of geometry
-
-	// if (m->texCoordArray != NULL)
-  //   {
-  //       glBindBuffer(GL_ARRAY_BUFFER, bunnyTexCoordBufferObjID);
-  //       glBufferData(GL_ARRAY_BUFFER, m->numVertices*2*sizeof(GLfloat), m->texCoordArray, GL_STATIC_DRAW);
-  //       glVertexAttribPointer(glGetAttribLocation(program, "inTexCoord"), 2, GL_FLOAT, GL_FALSE, 0, 0);
-  //       glEnableVertexAttribArray(glGetAttribLocation(program, "inTexCoord"));
-	//
-  //   }
-
-    // glActiveTexture(GL_TEXTURE0);
-    // glBindTexture(GL_TEXTURE_2D, myTex);
-
-
 	printError("init arrays");
 }
 
@@ -129,7 +84,7 @@ void init(void)
 void display(void)
 {
 	printError("pre display");
-    mat4 rot, trans, total, transMill, view;
+    mat4 rot, trans, total, transMill, view, transRoof, transBal;
 
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
 
@@ -146,14 +101,20 @@ void display(void)
 	mat4 rz2_init = Rz(3.14 / 2); // flytta 90 grader
 	mat4 rz3_init = Rz(3.14); // flytta 180 grader
 	mat4 rz4_init = Rz(- 3.14 / 2); // flytta minus -90
+	mat4 ry4_init = Ry(3.14*2); 
 
-  trans = T(0, 6, -3);  // flytta bladen
+  	trans = T(0, 4.5, -4);  // flytta bladen
 	transMill = T(0, -5, 0); // flytta huset
+	transRoof = T(0, -4, 0); //flytta tak
+	transBal = T(0, -5, 0); //flytta balkong
 
 	// initiera blade position på kvarnen
 	mat4 blade2Init = Mult(rz2_init, ry_init);
 	mat4 blade3Init = Mult(rz3_init, ry_init);
 	mat4 blade4Init = Mult(rz4_init, ry_init);
+
+	// initiera trappan på kvarnen
+	mat4 balInit = Mult(ry4_init, ry_init);
 
 	// lägg på tidsroationen
 	mat4 bladeRot1 = Mult(rz, ry_init);
@@ -166,16 +127,15 @@ void display(void)
 	mat4 blade2_res = Mult(trans, bladeRot2);
 	mat4 blade3_res = Mult(trans, bladeRot3);
 	mat4 blade4_res = Mult(trans, bladeRot4);
+	mat4 bal_res = Mult(transBal, balInit);
 
 	const float radius = 20.0f;
 	float camx = sin(t / 1000) * radius;
 	float camz = cos(t / 1000) * radius;
 
-  view = lookAt(camx, 0.0f, camz,
-                0.0f,0.0f,0.0f,
-                0.0f,1.0f,0.0f);
-
-	// mat4 rotView = Mult(Ry(ticker), view);
+	view = lookAt(camx, 0.0f, camz,
+					0.0f,0.0f,0.0f,
+					0.0f,1.0f,0.0f);
 
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
@@ -184,16 +144,22 @@ void display(void)
 	DrawModel(mill, program, "in_Position", "inNormal", "inTexCoord");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, blade1_res.m);
-	DrawModel(blade1, program, "in_Position", "inNormal", "inTexCoord");
+	DrawModel(blade, program, "in_Position", "inNormal", "inTexCoord");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, blade2_res.m);
-	DrawModel(blade1, program, "in_Position", "inNormal", "inTexCoord");
+	DrawModel(blade, program, "in_Position", "inNormal", "inTexCoord");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, blade3_res.m);
-	DrawModel(blade1, program, "in_Position", "inNormal", "inTexCoord");
+	DrawModel(blade, program, "in_Position", "inNormal", "inTexCoord");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, blade4_res.m);
-	DrawModel(blade1, program, "in_Position", "inNormal", "inTexCoord");
+	DrawModel(blade, program, "in_Position", "inNormal", "inTexCoord");
+
+	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, transRoof.m);
+	DrawModel(roof, program, "in_Position", "inNormal", "inTexCoord");
+
+	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, bal_res.m);
+	DrawModel(balcony, program, "in_Position", "inNormal", "inTexCoord");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, transMill.m);
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view.m);
