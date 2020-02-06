@@ -33,7 +33,10 @@ GLuint program;
 GLuint myTex;
 
 float rotate_x = 2;
-float rotate_z = -5;
+float rotate_z = -20;
+
+unsigned int groundArrayObjID;
+unsigned int groundBufferObjID;
 
 GLfloat projectionMatrix[] =
 {
@@ -46,6 +49,19 @@ GLfloat projectionMatrix[] =
     0.0f, 0.0f, -1.0f, 0.0f
 };
 
+GLfloat groundMatrix[] =
+{
+    // Bottom 1
+    -50.0f, -0.0f,  50.0f,
+    50.0f, -0.0f,  50.0f,
+    50.0f, -0.0f, -50.0f,
+
+    // Bottom 2
+    -50.0f, -0.0f,  50.0f,
+    -50.0f, -0.0f, -50.0f,
+    50.0f, -0.0f, -50.0f,
+};
+
 void OnTimer(int value)
 {
   glutPostRedisplay();
@@ -53,11 +69,11 @@ void OnTimer(int value)
 }
 
 // vertex array object
-unsigned int bunnyVertexArrayObjID;
 Model *blade;
 Model *mill;
 Model *roof;
 Model *balcony;
+Model *skybox;
 
 void SpecialKeyHandler(int key, int x, int y) 
 {
@@ -79,6 +95,7 @@ void init(void)
 	mill = LoadModelPlus("windmill-walls.obj");
 	roof = LoadModelPlus("windmill-roof.obj");
 	balcony = LoadModelPlus("windmill-balcony.obj");
+    skybox = LoadModelPlus("skybox.obj");
 
 	dumpInfo();
 
@@ -90,8 +107,26 @@ void init(void)
 	glDisable(GL_CULL_FACE);
 
 	// Load and compile shader
-	program = loadShaders("lab3-1.vert", "lab3-1.frag");
+	program = loadShaders("lab3-3.vert", "lab3-3.frag");
+    printError("init shader");
 
+	// Allocate and activate Vertex Array Object
+	glGenVertexArrays(1, &groundArrayObjID);
+	glBindVertexArray(groundArrayObjID);
+	// Allocate Vertex Buffer Objects
+	glGenBuffers(1, &groundBufferObjID);
+
+	// VBO for vertex data
+	glBindBuffer(GL_ARRAY_BUFFER, groundBufferObjID);
+	glBufferData(GL_ARRAY_BUFFER, 2*9*sizeof(GLfloat), groundMatrix, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(glGetAttribLocation(program, "in_Position"), 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(glGetAttribLocation(program, "in_Position"));
+
+    // Bind COLOR in variable
+	glVertexAttribPointer(glGetAttribLocation(program, "inNormal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
+	// Array COLOR is active
+	glEnableVertexAttribArray(glGetAttribLocation(program, "inNormal"));
 	printError("init arrays");
 }
 
@@ -157,6 +192,11 @@ void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	DrawModel(mill, program, "in_Position", "inNormal", "inTexCoord");
+
+    glBindVertexArray(groundArrayObjID);	// Select VAO
+	glDrawArrays(GL_TRIANGLES, 0, 3*2);	// 
+
+    //DrawModel(groundMatrix, program, "in_Position", "inNormal", "inTexCoord");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, blade1_res.m);
 	DrawModel(blade, program, "in_Position", "inNormal", "inTexCoord");
