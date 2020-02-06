@@ -32,6 +32,9 @@
 GLuint program;
 GLuint myTex;
 
+float rotate_x = 2;
+float rotate_z = -5;
+
 GLfloat projectionMatrix[] =
 {
     2.0f*near/(right-left), 0.0f, (right+left)/(right-left), 0.0f,
@@ -55,6 +58,18 @@ Model *blade;
 Model *mill;
 Model *roof;
 Model *balcony;
+
+void SpecialKeyHandler(int key, int x, int y) 
+{
+	if (key == GLUT_KEY_RIGHT)
+    	rotate_z += 1;
+	else if (key == GLUT_KEY_LEFT)
+		rotate_z -= 1;
+	else if (key == GLUT_KEY_UP)
+		rotate_x += 1;
+	else if (key == GLUT_KEY_DOWN)
+		rotate_x -= 1;
+}
 
 void init(void)
 {
@@ -133,7 +148,7 @@ void display(void)
 	float camx = sin(t / 1000) * radius;
 	float camz = cos(t / 1000) * radius;
 
-	view = lookAt(camx, 0.0f, camz,
+	view = lookAt(rotate_x, 1.0f, rotate_z,
 					0.0f,0.0f,0.0f,
 					0.0f,1.0f,0.0f);
 
@@ -177,6 +192,7 @@ int main(int argc, char *argv[])
 	glutDisplayFunc(display);
 	init ();
 	glutTimerFunc(20, &OnTimer, 0);
+	glutSpecialFunc(SpecialKeyHandler);
 	glutMainLoop();
 	return 0;
 }
