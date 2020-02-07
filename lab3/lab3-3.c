@@ -108,6 +108,7 @@ void init(void)
 
 	// Load and compile shader
 	program = loadShaders("lab3-3.vert", "lab3-3.frag");
+	LoadTGATextureSimple("SkyBox512.tga", &myTex);
     printError("init shader");
 
 	// Allocate and activate Vertex Array Object
@@ -127,6 +128,11 @@ void init(void)
 	glVertexAttribPointer(glGetAttribLocation(program, "inNormal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
 	// Array COLOR is active
 	glEnableVertexAttribArray(glGetAttribLocation(program, "inNormal"));
+
+	glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, myTex);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 	printError("init arrays");
 }
 
@@ -179,6 +185,14 @@ void display(void)
 	mat4 blade4_res = Mult(trans, bladeRot4);
 	mat4 bal_res = Mult(transBal, balInit);
 
+	float scale_x = 10.0f;
+	float scale_y = 20.0f;
+	float scale_z = 10.0f;
+
+	mat4 skybox_scale = S(scale_x, scale_y, scale_z);
+	mat4 skybox_trans = T(rotate_x, 1.0f, rotate_z);
+	mat4 skybox_res = Mult(skybox_trans, skybox_scale);
+
 	const float radius = 20.0f;
 	float camx = sin(t / 1000) * radius;
 	float camz = cos(t / 1000) * radius;
@@ -187,35 +201,40 @@ void display(void)
 					0.0f,0.0f,0.0f,
 					0.0f,1.0f,0.0f);
 
-
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	DrawModel(mill, program, "in_Position", "inNormal", "inTexCoord");
-
-    glBindVertexArray(groundArrayObjID);	// Select VAO
+	glBindVertexArray(groundArrayObjID);	// Select VAO
 	glDrawArrays(GL_TRIANGLES, 0, 3*2);	// 
+	
+	DrawModel(mill, program, "in_Position", "inNormal", "");
 
-    //DrawModel(groundMatrix, program, "in_Position", "inNormal", "inTexCoord");
+	glDisable(GL_DEPTH_TEST);
+	glUniform1i(glGetUniformLocation(program, "useText"), true);
+	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, skybox_res.m);
+	DrawModel(skybox, program, "in_Position", "inNormal", "inTexCoord");
+	glUniform1i(glGetUniformLocation(program, "useText"), false);
+	glEnable(GL_DEPTH_TEST);
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, blade1_res.m);
-	DrawModel(blade, program, "in_Position", "inNormal", "inTexCoord");
+	DrawModel(blade, program, "in_Position", "inNormal", "");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, blade2_res.m);
-	DrawModel(blade, program, "in_Position", "inNormal", "inTexCoord");
+	DrawModel(blade, program, "in_Position", "inNormal", "");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, blade3_res.m);
-	DrawModel(blade, program, "in_Position", "inNormal", "inTexCoord");
+	DrawModel(blade, program, "in_Position", "inNormal", "");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, blade4_res.m);
-	DrawModel(blade, program, "in_Position", "inNormal", "inTexCoord");
+	DrawModel(blade, program, "in_Position", "inNormal", "");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, transRoof.m);
-	DrawModel(roof, program, "in_Position", "inNormal", "inTexCoord");
+	DrawModel(roof, program, "in_Position", "inNormal", "");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, bal_res.m);
-	DrawModel(balcony, program, "in_Position", "inNormal", "inTexCoord");
+	DrawModel(balcony, program, "in_Position", "inNormal", "");
 
+	glUniform1i(glGetUniformLocation(program, "texUnit"), 0);
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, transMill.m);
 	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, view.m);
 	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
