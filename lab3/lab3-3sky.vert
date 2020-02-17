@@ -13,5 +13,5 @@ void main(void)
 {
     gl_Position = projectionMatrix * view * myMatrix * vec4(in_Position, 1.0);
     exColor = inNormal;
-	texcoord = in_Position.xz;
+	texcoord = inTexCoord;
 }

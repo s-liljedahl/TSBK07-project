@@ -38,7 +38,33 @@ float rotate_y = 1.0f;
 
 unsigned int groundArrayObjID;
 unsigned int groundBufferObjID;
-unsigned int groundTexCoordBufferObjID;
+
+
+vec3 lightSourcesColorsArr[] = 
+{ 
+	{1.0f, 0.0f, 0.0f}, // Red light
+
+	{0.0f, 1.0f, 0.0f}, // Green light
+
+	{0.0f, 0.0f, 1.0f}, // Blue light
+
+	{1.0f, 1.0f, 1.0f} 
+}; // White light
+
+GLint isDirectional[] = {0,0,1,1};
+
+vec3 lightSourcesDirectionsPositions[] = 
+{ 
+	{10.0f, 5.0f, 0.0f}, // Red light, positional
+
+	{0.0f, 5.0f, 10.0f}, // Green light, positional
+
+	{-1.0f, 0.0f, 0.0f}, // Blue light along X
+
+	{0.0f, 0.0f, -1.0f} 
+}; // White light along Z
+
+GLfloat specularExponent[] = {100.0, 200.0, 60.0, 50.0, 300.0, 150.0};
 
 GLfloat projectionMatrix[] =
 {
@@ -63,21 +89,6 @@ GLfloat groundMatrix[] =
     -80.0f, -0.0f, -80.0f,
     80.0f, -0.0f, -80.0f,
 };
-
-GLfloat texCoord[] =
-{
-    // Bottom 1
-    0.0f, 1.0f,  
-    1.0f, 1.0f,  
-    1.0f, 0.0f, 
-
-    // Bottom 2
-	0.0f, 1.0f,  
-    0.0f, 0.0f,  
-    1.0f, 0.0f, 
-
-};
-
 
 void OnTimer(int value)
 {
@@ -132,7 +143,7 @@ void init(void)
 	glDisable(GL_CULL_FACE);
 
 	// Load and compile shader
-	program_sky = loadShaders("lab3-3sky.vert", "lab3-3sky.frag");
+	program_sky = loadShaders("lab3-3.vert", "lab3-3sky.frag");
 	LoadTGATextureSimple("SkyBox512.tga", &myTex);
 
 	program_grass = loadShaders("lab3-3.vert", "lab3-3grass.frag");
@@ -158,8 +169,8 @@ void init(void)
     // Bind COLOR in variable
 	glVertexAttribPointer(glGetAttribLocation(program_grass, "inNormal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
 	// Array COLOR is active
- 	printError("init arrays2");
 	glEnableVertexAttribArray(glGetAttribLocation(program_grass, "inNormal"));
+
 	glActiveTexture(GL_TEXTURE0);
 	//glActiveTexture(GL_TEXTURE1);
 
@@ -251,7 +262,7 @@ void display(void)
 
 	glUniformMatrix4fv(glGetUniformLocation(program_grass, "view"), 1, GL_TRUE, view.m);
 	glUniformMatrix4fv(glGetUniformLocation(program_grass, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(program_grass, "myMatrix"), 1, GL_TRUE, T(0,-6,0).m);	
+	glUniformMatrix4fv(glGetUniformLocation(program_grass, "myMatrix"), 1, GL_TRUE, transMill.m);	
 
 	//glUniformMatrix4fv(glGetUniformLocation(program_grass, "myMatrix"), 1, GL_TRUE, T(0,-5,0).m);
 	glBindTexture(GL_TEXTURE_2D, myTex1); //grass text
@@ -284,6 +295,11 @@ void display(void)
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, bal_res.m);
 	DrawModel(balcony, program, "in_Position", "inNormal", "");
+
+	glUniform3fv(glGetUniformLocation(program, "lightSourcesDirPosArr"), 4, &lightSourcesDirectionsPositions[0].x);
+	glUniform3fv(glGetUniformLocation(program, "lightSourcesColorArr"), 4, &lightSourcesColorsArr[0].x);
+	glUniform1f(glGetUniformLocation(program, "specularExponent"), specularExponent[i]);
+	glUniform1iv(glGetUniformLocation(program, "isDirectional"), 4, isDirectional);
 
 
 //	glUniform1i(glGetUniformLocation(program, "texUnit"), 0);
