@@ -38,31 +38,21 @@ float rotate_y = 1.0f;
 
 unsigned int groundArrayObjID;
 unsigned int groundBufferObjID;
+unsigned int groundTexCoordBufferObjID;
 
-
-vec3 lightSourcesColorsArr[] = 
-{ 
+vec3 lightSourcesColorsArr[] = {
 	{1.0f, 0.0f, 0.0f}, // Red light
-
-	{0.0f, 1.0f, 0.0f}, // Green light
-
-	{0.0f, 0.0f, 1.0f}, // Blue light
-
-	{1.0f, 1.0f, 1.0f} 
-}; // White light
+ 	{0.0f, 1.0f, 0.0f}, // Green light
+ 	{0.0f, 0.0f, 1.0f}, // Blue light
+ 	{1.0f, 1.0f, 1.0f} }; // White light
 
 GLint isDirectional[] = {0,0,1,1};
 
-vec3 lightSourcesDirectionsPositions[] = 
-{ 
+vec3 lightSourcesDirectionsPositions[] = {
 	{10.0f, 5.0f, 0.0f}, // Red light, positional
-
-	{0.0f, 5.0f, 10.0f}, // Green light, positional
-
-	{-1.0f, 0.0f, 0.0f}, // Blue light along X
-
-	{0.0f, 0.0f, -1.0f} 
-}; // White light along Z
+ 	{0.0f, 5.0f, 10.0f}, // Green light, positional
+ 	{-1.0f, 0.0f, 0.0f}, // Blue light along X
+ 	{0.0f, 0.0f, -1.0f} }; // White light along Z
 
 GLfloat specularExponent[] = {100.0, 200.0, 60.0, 50.0, 300.0, 150.0};
 
@@ -90,6 +80,21 @@ GLfloat groundMatrix[] =
     80.0f, -0.0f, -80.0f,
 };
 
+GLfloat texCoord[] =
+{
+    // Bottom 1
+    0.0f, 1.0f,
+    1.0f, 1.0f,
+    1.0f, 0.0f,
+
+    // Bottom 2
+	0.0f, 1.0f,
+    0.0f, 0.0f,
+    1.0f, 0.0f,
+
+};
+
+
 void OnTimer(int value)
 {
   glutPostRedisplay();
@@ -103,7 +108,7 @@ Model *roof;
 Model *balcony;
 Model *skybox;
 
-void SpecialKeyHandler(int key, int x, int y) 
+void SpecialKeyHandler(int key, int x, int y)
 {
 	if (key == GLUT_KEY_RIGHT)
     	rotate_z += 1;
@@ -115,7 +120,7 @@ void SpecialKeyHandler(int key, int x, int y)
 		rotate_x -= 1;
 }
 
-void KeyHandler(int key, int x, int y) 
+void KeyHandler(int key, int x, int y)
 {
 	if (key == 'w')
     	rotate_y += 1;
@@ -131,7 +136,7 @@ void init(void)
 	mill = LoadModelPlus("windmill-walls.obj");
 	roof = LoadModelPlus("windmill-roof.obj");
 	balcony = LoadModelPlus("windmill-balcony.obj");
-    skybox = LoadModelPlus("skybox.obj");
+  skybox = LoadModelPlus("skybox.obj");
 
 	dumpInfo();
 
@@ -143,13 +148,13 @@ void init(void)
 	glDisable(GL_CULL_FACE);
 
 	// Load and compile shader
-	program_sky = loadShaders("lab3-3.vert", "lab3-3sky.frag");
+	program_sky = loadShaders("lab3-3sky.vert", "lab3-3sky.frag");
 	LoadTGATextureSimple("SkyBox512.tga", &myTex);
 
-	program_grass = loadShaders("lab3-3.vert", "lab3-3grass.frag");
+	program_grass = loadShaders("lab3-4.vert", "lab3-4grass.frag");
 	LoadTGATextureSimple("maskros512.tga", &myTex1);
 
-	program = loadShaders("lab3-3.vert", "lab3-3.frag");
+	program = loadShaders("lab3-4.vert", "lab3-4.frag");
 
     printError("init shader");
 
@@ -169,8 +174,8 @@ void init(void)
     // Bind COLOR in variable
 	glVertexAttribPointer(glGetAttribLocation(program_grass, "inNormal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
 	// Array COLOR is active
+ 	printError("init arrays2");
 	glEnableVertexAttribArray(glGetAttribLocation(program_grass, "inNormal"));
-
 	glActiveTexture(GL_TEXTURE0);
 	//glActiveTexture(GL_TEXTURE1);
 
@@ -198,11 +203,11 @@ void display(void)
 	mat4 rz2_init = Rz(3.14 / 2); // flytta 90 grader
 	mat4 rz3_init = Rz(3.14); // flytta 180 grader
 	mat4 rz4_init = Rz(- 3.14 / 2); // flytta minus -90
-	mat4 ry4_init = Ry(3.14*2); 
+	mat4 ry4_init = Ry(3.14*2);
 
   	trans = T(0, 4.5, -4);  // flytta bladen
 	transMill = T(0, -5, 0); // flytta huset
-	transRoof = T(0, -4, 0); //flytta tak
+	transRoof = T(0, -4.5, 0); //flytta tak
 	transBal = T(0, -5, 0); //flytta balkong
 
 	// initiera blade position på kvarnen
@@ -243,16 +248,18 @@ void display(void)
 					0.0f,0.0f,0.0f,
 					0.0f,1.0f,0.0f);
 
+	vec3 camera_postion[] = { rotate_x, rotate_y, rotate_z };
+
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+
 	glUseProgram(program_sky);
 
 	glUniformMatrix4fv(glGetUniformLocation(program_sky, "view"), 1, GL_TRUE, view.m);
 	glUniformMatrix4fv(glGetUniformLocation(program_sky, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
 	glUniformMatrix4fv(glGetUniformLocation(program_sky, "myMatrix"), 1, GL_TRUE, transMill.m);
 
-	glBindTexture(GL_TEXTURE_2D, myTex); //sky texture	
+	glBindTexture(GL_TEXTURE_2D, myTex); //sky texture
 	glDisable(GL_DEPTH_TEST);
 	glUniformMatrix4fv(glGetUniformLocation(program_sky, "myMatrix"), 1, GL_TRUE, skybox_res.m);
 	DrawModel(skybox, program_sky, "in_Position", "inNormal", "inTexCoord");
@@ -262,7 +269,7 @@ void display(void)
 
 	glUniformMatrix4fv(glGetUniformLocation(program_grass, "view"), 1, GL_TRUE, view.m);
 	glUniformMatrix4fv(glGetUniformLocation(program_grass, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(program_grass, "myMatrix"), 1, GL_TRUE, transMill.m);	
+	glUniformMatrix4fv(glGetUniformLocation(program_grass, "myMatrix"), 1, GL_TRUE, T(0,-6,0).m);
 
 	//glUniformMatrix4fv(glGetUniformLocation(program_grass, "myMatrix"), 1, GL_TRUE, T(0,-5,0).m);
 	glBindTexture(GL_TEXTURE_2D, myTex1); //grass text
@@ -298,11 +305,11 @@ void display(void)
 
 	glUniform3fv(glGetUniformLocation(program, "lightSourcesDirPosArr"), 4, &lightSourcesDirectionsPositions[0].x);
 	glUniform3fv(glGetUniformLocation(program, "lightSourcesColorArr"), 4, &lightSourcesColorsArr[0].x);
-	glUniform1f(glGetUniformLocation(program, "specularExponent"), specularExponent[i]);
+	glUniform1fv(glGetUniformLocation(program, "specularExponent"), 4, specularExponent);
 	glUniform1iv(glGetUniformLocation(program, "isDirectional"), 4, isDirectional);
 
+	glUniform3fv(glGetUniformLocation(program, "viewDirection"), 1, camera_postion);
 
-//	glUniform1i(glGetUniformLocation(program, "texUnit"), 0);
 
 	printError("display");
 	glutSwapBuffers();
