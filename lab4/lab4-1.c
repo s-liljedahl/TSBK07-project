@@ -18,12 +18,14 @@ Model* GenerateTerrain(TextureData *tex)
 	int vertexCount = tex->width * tex->height;
 	int triangleCount = (tex->width-1) * (tex->height-1) * 2;
 	int x, z;
-	
+
+	printf("count :%d\n", triangleCount);
+
 	GLfloat *vertexArray = malloc(sizeof(GLfloat) * 3 * vertexCount);
 	GLfloat *normalArray = malloc(sizeof(GLfloat) * 3 * vertexCount);
 	GLfloat *texCoordArray = malloc(sizeof(GLfloat) * 2 * vertexCount);
 	GLuint *indexArray = malloc(sizeof(GLuint) * triangleCount*3);
-	
+
 	printf("bpp %d\n", tex->bpp);
 	for (x = 0; x < tex->width; x++)
 		for (z = 0; z < tex->height; z++)
@@ -52,9 +54,9 @@ Model* GenerateTerrain(TextureData *tex)
 			indexArray[(x + z * (tex->width-1))*6 + 4] = x + (z+1) * tex->width;
 			indexArray[(x + z * (tex->width-1))*6 + 5] = x+1 + (z+1) * tex->width;
 		}
-	
+
 	// End of terrain generation
-	
+
 	// Create Model and upload to GPU:
 
 	Model* model = LoadDataToModel(
@@ -91,13 +93,13 @@ void init(void)
 	program = loadShaders("terrain.vert", "terrain.frag");
 	glUseProgram(program);
 	printError("init shader");
-	
+
 	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(program, "tex"), 0); // Texture unit 0
 	LoadTGATextureSimple("maskros512.tga", &tex1);
-	
+
 // Load terrain data
-	
+
 	LoadTGATextureData("44-terrain.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
 	printError("init terrain");
@@ -107,15 +109,15 @@ void display(void)
 {
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+
 	mat4 total, modelView, camMatrix;
-	
+
 	printError("pre display");
-	
+
 	glUseProgram(program);
 
 	// Build matrix
-	
+
 	vec3 cam = {0, 5, 8};
 	vec3 lookAtPoint = {2, 0, 2};
 	camMatrix = lookAt(cam.x, cam.y, cam.z,
@@ -124,12 +126,12 @@ void display(void)
 	modelView = IdentityMatrix();
 	total = Mult(camMatrix, modelView);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
-	
+
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
 
 	printError("display 2");
-	
+
 	glutSwapBuffers();
 }
 
