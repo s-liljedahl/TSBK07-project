@@ -67,14 +67,14 @@ GLfloat groundMatrix[] =
 GLfloat texCoord[] =
 {
     // Bottom 1
-    0.0f, 1.0f,  
-    1.0f, 1.0f,  
-    1.0f, 0.0f, 
+    0.0f, 1.0f,
+    1.0f, 1.0f,
+    1.0f, 0.0f,
 
     // Bottom 2
-	0.0f, 1.0f,  
-    0.0f, 0.0f,  
-    1.0f, 0.0f, 
+	0.0f, 1.0f,
+    0.0f, 0.0f,
+    1.0f, 0.0f,
 
 };
 
@@ -92,7 +92,7 @@ Model *roof;
 Model *balcony;
 Model *skybox;
 
-void SpecialKeyHandler(int key, int x, int y) 
+void SpecialKeyHandler(int key, int x, int y)
 {
 	if (key == GLUT_KEY_RIGHT)
     	rotate_z += 1;
@@ -104,7 +104,7 @@ void SpecialKeyHandler(int key, int x, int y)
 		rotate_x -= 1;
 }
 
-void KeyHandler(int key, int x, int y) 
+void KeyHandler(int key, int x, int y)
 {
 	if (key == 'w')
     	rotate_y += 1;
@@ -187,7 +187,7 @@ void display(void)
 	mat4 rz2_init = Rz(3.14 / 2); // flytta 90 grader
 	mat4 rz3_init = Rz(3.14); // flytta 180 grader
 	mat4 rz4_init = Rz(- 3.14 / 2); // flytta minus -90
-	mat4 ry4_init = Ry(3.14*2); 
+	mat4 ry4_init = Ry(3.14*2);
 
   	trans = T(0, 4.5, -4);  // flytta bladen
 	transMill = T(0, -5, 0); // flytta huset
@@ -221,7 +221,7 @@ void display(void)
 	float scale_z = 10.0f;
 
 	mat4 skybox_scale = S(scale_x, scale_y, scale_z);
-	mat4 skybox_trans = T(rotate_x, 1.0f, rotate_z);
+	mat4 skybox_trans = T(rotate_x, rotate_y, rotate_z);
 	mat4 skybox_res = Mult(skybox_trans, skybox_scale);
 
 	const float radius = 20.0f;
@@ -234,14 +234,14 @@ void display(void)
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+
 	glUseProgram(program_sky);
 
 	glUniformMatrix4fv(glGetUniformLocation(program_sky, "view"), 1, GL_TRUE, view.m);
 	glUniformMatrix4fv(glGetUniformLocation(program_sky, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
 	glUniformMatrix4fv(glGetUniformLocation(program_sky, "myMatrix"), 1, GL_TRUE, transMill.m);
 
-	glBindTexture(GL_TEXTURE_2D, myTex); //sky texture	
+	glBindTexture(GL_TEXTURE_2D, myTex); //sky texture
 	glDisable(GL_DEPTH_TEST);
 	glUniformMatrix4fv(glGetUniformLocation(program_sky, "myMatrix"), 1, GL_TRUE, skybox_res.m);
 	DrawModel(skybox, program_sky, "in_Position", "inNormal", "inTexCoord");
@@ -251,7 +251,7 @@ void display(void)
 
 	glUniformMatrix4fv(glGetUniformLocation(program_grass, "view"), 1, GL_TRUE, view.m);
 	glUniformMatrix4fv(glGetUniformLocation(program_grass, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(program_grass, "myMatrix"), 1, GL_TRUE, T(0,-6,0).m);	
+	glUniformMatrix4fv(glGetUniformLocation(program_grass, "myMatrix"), 1, GL_TRUE, T(0,-6,0).m);
 
 	//glUniformMatrix4fv(glGetUniformLocation(program_grass, "myMatrix"), 1, GL_TRUE, T(0,-5,0).m);
 	glBindTexture(GL_TEXTURE_2D, myTex1); //grass text
