@@ -24,7 +24,7 @@ void main(void)
 
 	// vec3 viewDirection = vec3(view[0][0], view[0][1], view[0][2]);
 
-	const float kd = 0.1;
+	const float kd = 0.3;
 	const float kspec = 0.4;
 
 	// ambient light
