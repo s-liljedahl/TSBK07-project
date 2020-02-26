@@ -20,6 +20,9 @@ float cam_look_x = 2.0f;
 float cam_look_z = 2.0f;
 float cam_look_angle = 0.0f;
 
+int mouse_x_old = 0;
+int mouse_y_old = 0;
+
 Model* GenerateTerrain(TextureData *tex)
 {
 	int vertexCount = tex->width * tex->height;
@@ -107,7 +110,7 @@ void init(void)
 
 // Load terrain data
 
-	LoadTGATextureData("maskros512.tga", &ttex);
+	LoadTGATextureData("fft-terrain.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
 	printError("init terrain");
 }
@@ -126,7 +129,8 @@ void display(void)
 	// Build matrix
 
 	vec3 cam = {cam_pos_x, cam_pos_y, cam_pos_z};
-	vec3 lookAtPoint = {sin(cam_look_angle), 0, cos(cam_look_angle)};
+	vec3 lookAtPoint = {cam_look_x, 0, cam_look_z};
+
 	camMatrix = lookAt(cam.x, cam.y, cam.z,
 				lookAtPoint.x, lookAtPoint.y, lookAtPoint.z,
 				0.0, 1.0, 0.0);
@@ -151,6 +155,34 @@ void timer(int i)
 void mouse(int x, int y)
 {
 	printf("%d %d\n", x, y);
+
+	float CameraMoveSpeed = 0.01; 
+	int deltaX;
+	int deltaY;
+
+	if ((x < 600 && y < 600) && (x > 0 && y > 0)) {
+		deltaX = x - mouse_x_old;
+		deltaY = y - mouse_y_old;
+	} else {
+		deltaX = (x < 0 ? 5 : -5);
+		deltaY = (y < 0 ? 5 : -5);
+	}
+		
+	// cam_pos_x += deltaY * cam_look_x * CameraMoveSpeed;
+	// cam_pos_z += deltaY * cam_look_z * CameraMoveSpeed;
+
+	// float rightX = -cam_look_z;
+	// float rightZ = cam_look_x;
+
+	// cam_pos_x += deltaX * rightX * CameraMoveSpeed;
+	// cam_pos_z += deltaY * rightZ * CameraMoveSpeed;
+
+	cam_pos_x += deltaX * CameraMoveSpeed;
+	cam_pos_z += deltaY * CameraMoveSpeed;
+
+	// save old mouse coordinates
+	mouse_x_old = x;
+	mouse_y_old = y;
 }
 
 void SpecialKeyHandler(int key)
