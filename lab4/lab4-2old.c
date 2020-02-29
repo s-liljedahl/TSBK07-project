@@ -10,9 +10,6 @@
 #include "VectorUtils3.h"
 #include "loadobj.h"
 #include "LoadTGA.h"
-#include<math.h>
-
-#define pi 3.14
 
 mat4 projectionMatrix;
 float cam_pos_x = 2.0f;
@@ -26,70 +23,20 @@ float cam_look_angle = 0.0f;
 int mouse_x_old = 0;
 int mouse_y_old = 0;
 
-float yaw = -90.0f;
-float pitch = 90.0f;
-
-vec3 direction;
-vec3 cameraPos = {0.0f, 2.0f,  10.0f};
-vec3 cameraFront = {0.0f, 0.0f, -1.0f};
-vec3 cameraUp = {0.0f, 1.0f,  0.0f};
-
-float lastX = 775.0f;
-float lastY = 775.0f;
-
-bool firstMouse = true;
-
-float radians(float degree) {
-	float rad = (pi/180) * degree;
-	return rad;
-}
-
-void mouse(int xpos, int ypos)
-{
-	if(firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
-	lastX = xpos;
-	lastY = ypos;
-
-	const float sensitivity = 2.0f;
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
-
-	yaw += xoffset;
-	pitch += yoffset;
-
-	if(pitch > 89.0f)
-		pitch = 89.0f;
-    if(pitch < -89.0f)
-        pitch = -89.0f;
-
-	direction.x = cos(radians(yaw)) * cos(radians(pitch));
-    direction.y = sin(radians(pitch));
-    direction.z = sin(radians(yaw)) * cos(radians(pitch));
-    cameraFront = Normalize(direction);
-}
-
 Model* GenerateTerrain(TextureData *tex)
 {
 	int vertexCount = tex->width * tex->height;
 	int triangleCount = (tex->width-1) * (tex->height-1) * 2;
 	int x, z;
 
-	//printf("count :%d\n", triangleCount);
+	printf("count :%d\n", triangleCount);
 
 	GLfloat *vertexArray = malloc(sizeof(GLfloat) * 3 * vertexCount);
 	GLfloat *normalArray = malloc(sizeof(GLfloat) * 3 * vertexCount);
 	GLfloat *texCoordArray = malloc(sizeof(GLfloat) * 2 * vertexCount);
 	GLuint *indexArray = malloc(sizeof(GLuint) * triangleCount*3);
 
-	//printf("bpp %d\n", tex->bpp);
+	printf("bpp %d\n", tex->bpp);
 	for (x = 0; x < tex->width; x++)
 		for (z = 0; z < tex->height; z++)
 		{
@@ -184,12 +131,9 @@ void display(void)
 	vec3 cam = {cam_pos_x, cam_pos_y, cam_pos_z};
 	vec3 lookAtPoint = {cam_look_x, 0, cam_look_z};
 
-	// camMatrix = lookAt(cam.x, cam.y, cam.z,
-	// 			lookAtPoint.x, lookAtPoint.y, lookAtPoint.z,
-	// 			0.0, 1.0, 0.0);
-
-	camMatrix = lookAtv(cameraPos, VectorAdd(cameraPos, cameraFront), cameraUp);
-
+	camMatrix = lookAt(cam.x, cam.y, cam.z,
+				lookAtPoint.x, lookAtPoint.y, lookAtPoint.z,
+				0.0, 1.0, 0.0);
 	modelView = IdentityMatrix();
 	total = Mult(camMatrix, modelView);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
@@ -208,18 +152,49 @@ void timer(int i)
 	glutPostRedisplay();
 }
 
+void mouse(int x, int y)
+{
+	printf("%d %d\n", x, y);
+
+	float CameraMoveSpeed = 0.01; 
+	int deltaX;
+	int deltaY;
+
+	if ((x < 600 && y < 600) && (x > 0 && y > 0)) {
+		deltaX = x - mouse_x_old;
+		deltaY = y - mouse_y_old;
+	} else {
+		deltaX = (x < 0 ? 5 : -5);
+		deltaY = (y < 0 ? 5 : -5);
+	}
+		
+	// cam_pos_x += deltaY * cam_look_x * CameraMoveSpeed;
+	// cam_pos_z += deltaY * cam_look_z * CameraMoveSpeed;
+
+	// float rightX = -cam_look_z;
+	// float rightZ = cam_look_x;
+
+	// cam_pos_x += deltaX * rightX * CameraMoveSpeed;
+	// cam_pos_z += deltaY * rightZ * CameraMoveSpeed;
+
+	cam_pos_x += deltaX * CameraMoveSpeed;
+	cam_pos_z += deltaY * CameraMoveSpeed;
+
+	// save old mouse coordinates
+	mouse_x_old = x;
+	mouse_y_old = y;
+}
+
 void SpecialKeyHandler(int key)
 {
-	const float cameraSpeed = 1.0f;
-
 	if (key == GLUT_KEY_RIGHT)
-    	cameraPos = VectorAdd(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+    	cam_pos_z += 1;
 	else if (key == GLUT_KEY_LEFT)
-		cameraPos = VectorSub(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		cam_pos_z -= 1;
 	else if (key == GLUT_KEY_UP)
-		cameraPos = VectorAdd(cameraPos, ScalarMult(cameraFront, cameraSpeed));
+		cam_pos_x += 1;
 	else if (key == GLUT_KEY_DOWN)
-		cameraPos = VectorSub(cameraPos, ScalarMult(cameraFront, cameraSpeed));
+		cam_pos_x -= 1;
 }
 
 void KeyHandler(int key, int x, int y)
