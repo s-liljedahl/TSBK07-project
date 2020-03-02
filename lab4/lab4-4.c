@@ -20,6 +20,9 @@ float cam_look_x = 2.0f;
 float cam_look_z = 2.0f;
 float cam_look_angle = 0.0f;
 
+GLfloat *vertexArray;
+float scaling_factor = 1.0f;
+
 Model* GenerateTerrain(TextureData *tex)
 {
 	int vertexCount = tex->width * tex->height;
@@ -28,7 +31,7 @@ Model* GenerateTerrain(TextureData *tex)
 
 	printf("count :%d\n", triangleCount);
 
-	GLfloat *vertexArray = malloc(sizeof(GLfloat) * 3 * vertexCount);
+	vertexArray = malloc(sizeof(GLfloat) * 3 * vertexCount);
 	GLfloat *normalArray = malloc(sizeof(GLfloat) * 3 * vertexCount);
 	GLfloat *texCoordArray = malloc(sizeof(GLfloat) * 2 * vertexCount);
 	GLuint *indexArray = malloc(sizeof(GLuint) * triangleCount*3);
@@ -38,9 +41,9 @@ Model* GenerateTerrain(TextureData *tex)
 		for (z = 0; z < tex->height; z++)
 		{
 // Vertex array. You need to scale this properly
-			vertexArray[(x + z * tex->width)*3 + 0] = 0.5* x / 1.0;
-			vertexArray[(x + z * tex->width)*3 + 1] = 0.5* tex->imageData[(x + z * tex->width) * (tex->bpp/8)] / 10.0;
-			vertexArray[(x + z * tex->width)*3 + 2] = 0.5* z / 1.0;
+			vertexArray[(x + z * tex->width) * 3 + 0] = scaling_factor * x / 1.0;
+			vertexArray[(x + z * tex->width) * 3 + 1] = scaling_factor * tex->imageData[(x + z * tex->width) * (tex->bpp / 8)] / 10.0;
+			vertexArray[(x + z * tex->width) * 3 + 2] = scaling_factor * z / 1.0;
 // Texture coordinates. You may want to scale them.
 			texCoordArray[(x + z * tex->width)*2 + 0] = x; // (float)x / tex->width;
 			texCoordArray[(x + z * tex->width)*2 + 1] = z; // (float)z / tex->height;
@@ -93,7 +96,7 @@ Model* GenerateTerrain(TextureData *tex)
 			normalArray[(x + z * tex->width)*3 + 2] = N_norm.z;
 	}
 
-
+	
 	for (x = 0; x < tex->width-1; x++)
 		for (z = 0; z < tex->height-1; z++)
 		{
@@ -123,6 +126,93 @@ Model* GenerateTerrain(TextureData *tex)
 	return model;
 }
 
+float getVertexHeight(Model* model, int x, int z, int texWidth)
+{
+		return model->vertexArray[((x - 1) + z * texWidth) * 3 + 1];
+}
+
+float barryCentric(vec3 p1, vec3 p2, vec3 p3, float xpos, float zpos) {
+
+	// p1, p2, p3 = triangle corners
+	// xpos, zpos = coordinate inside triangle
+	// printf("p1 %f %f %f\n", p1.x, p1.y, p1.z);
+	// printf("p2 %f %f %f\n", p2.x, p2.y, p2.z);
+	// printf("p3 %f %f %f\n", p3.x, p3.y, p3.z);
+	float det = (p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z);
+	// printf("det %f\n", det);
+	float l1 = ((p2.z - p3.z) * (xpos - p3.x) + (p3.x - p2.x) * (zpos - p3.z)) / det;
+	float l2 = ((p3.z - p1.z) * (xpos - p3.x) + (p1.x - p3.x) * (zpos - p3.z)) / det;
+	float l3 = 1.0f - l1 - l2;
+	// printf("l %f %f %f\n", l1, l2, l3);
+	return l1 * p1.y + l2 * p2.y + l3 * p3.y;
+}
+
+float getHeight(float x, float z, Model *model, int texWidth)
+{
+
+	// printf("input %f %f\n", x, z);
+
+	// antal grid quares ?
+	float quadSize = texWidth / ((float)texWidth - 1.0f);
+	// int quadSize = 1;
+
+	// vilken quad/gridsquare
+	int quadX = (int)floor(x / quadSize);
+	int quadZ = (int)floor(z / quadSize);
+	// printf("Quad numbers %d %d\n", quadX, quadZ);
+
+	int intX = (int)x;
+	int intZ = (int)z;
+	// printf("int %d %d\n", intX, intZ);
+
+	// where on the square/quad
+	float deltaX = (float)(x - intX);
+	float deltaZ = (float)(z - intZ);
+	// printf("Delta %f %f\n", deltaX, deltaZ);
+
+	vec3 a, b, c;
+	float h1, h2, h3;
+
+	// if outside bounds
+	if (quadX >= texWidth || quadZ >= texWidth || quadX < 0 || quadZ < 0)
+	{
+		return 0.0f;
+	}
+
+	float newHeight;
+
+	// upper or lower triangle, [ x < 1-Z ]
+	if (deltaX <= (1 - deltaZ))
+	{
+		// upper triangle
+		h1 = getVertexHeight(model, intX, intZ, texWidth);
+		h2 = getVertexHeight(model, intX + 1, intZ, texWidth);
+		h3 = getVertexHeight(model, intX, intZ + 1, texWidth);
+		// printf("H1 %f %f %f\n", h1, h2, h3);
+
+		vec3 a = {0, h1, 0};
+		vec3 b = {1, h2, 0};
+		vec3 c = {0, h3, 1};	
+
+		newHeight = barryCentric(a, b, c, deltaX, deltaZ);
+	}
+	else
+	{
+		// lower triangle
+		h1 = getVertexHeight(model, intX + 1, intZ, texWidth);
+		h2 = getVertexHeight(model, intX + 1, intZ + 1, texWidth);
+		h3 = getVertexHeight(model, intX, intZ + 1, texWidth);
+		// printf("H2 %f %f %f\n", h1, h2, h3);
+
+		vec3 a = {1, h1, 0};
+		vec3 b = {1, h2, 1};
+		vec3 c = {0, h3, 1};	
+
+		newHeight = barryCentric(a, b, c, deltaX, deltaZ);
+	}
+
+	return newHeight;
+}
 
 // vertex array object
 Model *m, *m2, *tm;
@@ -168,11 +258,13 @@ void display(void)
 
 	glUseProgram(program);
 
-	// Build matrix
+	// float height = getHeight(2.5f, 5.1f, tm, ttex.width);
+	float height = getHeight(cam_pos_x, cam_pos_z, tm, ttex.width);
+	printf("Height: %f\n", height);
 
 	vec3 cam = {cam_pos_x, cam_pos_y, cam_pos_z};
 	vec3 lookAtPoint = {sin(cam_look_angle), 0, cos(cam_look_angle)};
-	camMatrix = lookAt(cam.x, cam.y, cam.z,
+	camMatrix = lookAt(cam.x, height + 3, cam.z,
 				lookAtPoint.x, lookAtPoint.y, lookAtPoint.z,
 				0.0, 1.0, 0.0);
 	modelView = IdentityMatrix();
