@@ -15,13 +15,6 @@
 #define pi 3.14
 
 mat4 projectionMatrix;
-float cam_pos_x = 2.0f;
-float cam_pos_y = 5.0f;
-float cam_pos_z = 8.0f;
-
-float cam_look_x = 2.0f;
-float cam_look_z = 2.0f;
-float cam_look_angle = 0.0f;
 
 int mouse_x_old = 0;
 int mouse_y_old = 0;
@@ -34,8 +27,8 @@ vec3 cameraPos = {0.0f, 2.0f,  10.0f};
 vec3 cameraFront = {0.0f, 0.0f, -1.0f};
 vec3 cameraUp = {0.0f, 1.0f,  0.0f};
 
-float lastX = 775.0f;
-float lastY = 775.0f;
+float lastX = 775.0f/2;
+float lastY = 775.0f/2;
 
 bool firstMouse = true;
 
@@ -180,14 +173,6 @@ void display(void)
 	glUseProgram(program);
 
 	// Build matrix
-
-	vec3 cam = {cam_pos_x, cam_pos_y, cam_pos_z};
-	vec3 lookAtPoint = {cam_look_x, 0, cam_look_z};
-
-	// camMatrix = lookAt(cam.x, cam.y, cam.z,
-	// 			lookAtPoint.x, lookAtPoint.y, lookAtPoint.z,
-	// 			0.0, 1.0, 0.0);
-
 	camMatrix = lookAtv(cameraPos, VectorAdd(cameraPos, cameraFront), cameraUp);
 
 	modelView = IdentityMatrix();
@@ -222,24 +207,6 @@ void SpecialKeyHandler(int key)
 		cameraPos = VectorSub(cameraPos, ScalarMult(cameraFront, cameraSpeed));
 }
 
-void KeyHandler(int key, int x, int y)
-{
-	// move up/down
-	if (key == 'w')
-    	cam_pos_y += 1;
-	else if (key == 's')
-		cam_pos_y -= 1;
-
-	// look at
-	else if (key == 'a')
-		// rotera höger
-		cam_look_angle += 3.14 * 0.1;
-	else if (key == 'd')
-			// rotera höger
-		cam_look_angle -= 3.14 * 0.1;
-
-}
-
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
@@ -252,8 +219,6 @@ int main(int argc, char **argv)
 	glutTimerFunc(20, &timer, 0);
 	glutSpecialFunc(SpecialKeyHandler);
 	glutPassiveMotionFunc(mouse);
-	glutKeyboardFunc(KeyHandler);
-
 	glutMainLoop();
 	exit(0);
 }

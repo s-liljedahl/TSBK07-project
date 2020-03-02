@@ -38,6 +38,8 @@ mac 4 : lab4-4.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(commond
 mac 5 : lab4-5.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(commondir)loadobj.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m
 		gcc -Wall -o lab4-5 -I$(commondir) -I../common/Mac -DGL_GLEXT_PROTOTYPES lab4-5.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m -framework Cocoa -framework OpenGL -lm
 
+mac 6 : lab4-6.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(commondir)loadobj.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m
+		gcc -Wall -o lab4-6 -I$(commondir) -I../common/Mac -DGL_GLEXT_PROTOTYPES lab4-6.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m -framework Cocoa -framework OpenGL -lm
 
 
 

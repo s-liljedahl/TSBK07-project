@@ -281,7 +281,7 @@ bool checkCollision(vec3 sphere_pos, float rad_sphere) {
 		float distance = sqrt(dx*dx + dy*dy + dz*dz);
 
 		if (distance <= (rad_oct + rad_sphere))
-			printf("%d\n", i);
+			printf("%f\n", distance);
 			return true;
 	}
 
@@ -335,7 +335,7 @@ void init(void)
 	// Load and compile shader
 	sphere = LoadModelPlus("groundsphere.obj");
 	octagon = LoadModelPlus("octagon.obj");
-	program_sphere = loadShaders("sphere.vert", "sphere.frag");
+	program_sphere = loadShaders("sphere.vert", "sphere-6.frag");
 	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 
 	// Load and compile shader
@@ -410,6 +410,7 @@ void display(void)
 	glUseProgram(program_sphere);
 	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "view"), 1, GL_TRUE, total.m);
 	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "sphereMatrix"), 1, GL_TRUE, sphere_res.m);
+	glUniform1i(glGetUniformLocation(program_sphere, "hasCollision"), color);
 	DrawModel(sphere, program_sphere, "inPosition", "inNormal", "inTexCoord");
 
 	// oct
