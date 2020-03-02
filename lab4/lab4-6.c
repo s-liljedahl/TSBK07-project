@@ -38,6 +38,9 @@ vec3 cameraUp = {0.0f, 1.0f,  0.0f};
 float lastX = 775.0f / 2;
 float lastY = 775.0f / 2;
 
+vec3 oct_array[5] = {}; 
+float rad_oct = 5.0f;
+
 float radians(float degree) {
 	float rad = (pi/180) * degree;
 	return rad;
@@ -267,16 +270,22 @@ float getHeight(float x, float z, Model *model, int texWidth)
 	return newHeight;
 }
 
-bool checkCollision(vec3 oct_pos, vec3 sphere_pos, float rad_oct, float rad_sphere) {
+bool checkCollision(vec3 sphere_pos, float rad_sphere) {
 
-	float dx = oct_pos.x - sphere_pos.x;
-	float dy = oct_pos.y - sphere_pos.y;
-	float dz = oct_pos.z - sphere_pos.z;
+	for (int i = 0; i < 5; i++)
+	{
+		float dx = oct_array[i].x - sphere_pos.x;
+		float dy = oct_array[i].y - sphere_pos.y;
+		float dz = oct_array[i].z - sphere_pos.z;
 
-	float distance = sqrt(dx*dx + dy*dy + dz*dz);
+		float distance = sqrt(dx*dx + dy*dy + dz*dz);
 
-	return (distance <= (rad_oct + rad_sphere));
+		if (distance <= (rad_oct + rad_sphere))
+			printf("%d\n", i);
+			return true;
+	}
 
+	return false;
 }
 
 // vertex array object
@@ -287,6 +296,29 @@ GLuint program;
 GLuint program_sphere;
 GLuint tex1, tex2;
 TextureData ttex; // terrain
+
+void draw_oct()
+{
+	int radius = 30;
+	mat4 oct_transform, oct_scale, oct_res;
+
+	for (int i = 0; i < 5; i++)
+	{
+		GLfloat x = (sin(i) * radius) + 100.0f;
+		GLfloat z = (cos(i) * radius + 100.0f);
+
+		GLfloat oct_posy = getHeight(x, z, tm, ttex.width);
+		vec3 oct_pos = {x, oct_posy, z};
+		oct_array[i] = oct_pos;
+
+		oct_scale = S(rad_oct, rad_oct, rad_oct);
+		oct_transform = T(x, oct_posy, z);
+		oct_res = Mult(oct_transform, oct_scale);
+
+		glUniformMatrix4fv(glGetUniformLocation(program_sphere, "sphereMatrix"), 1, GL_TRUE, oct_res.m);
+		DrawModel(octagon, program_sphere, "inPosition", "inNormal", "inTexCoord");
+	}	
+}
 
 void init(void)
 {
@@ -344,34 +376,20 @@ void display(void)
 	GLfloat tickerSin = sin(t / 3000) * radius;
 	GLfloat tickerCos = cos(t / 3000) * radius;
 
-	gli
-
 	camMatrix = lookAtv(cameraPos, VectorAdd(cameraPos, cameraFront), cameraUp);
 
-	modelView = IdentityMgatrix();
+	modelView = IdentityMatrix();
 	total = Mult(camMatrix, modelView);
-
 
 	GLfloat sphere_posx = tickerSin + 100.0f;
 	GLfloat sphere_posz = tickerCos + 100.0f;
 	GLfloat sphere_posy = getHeight(sphere_posx, sphere_posz, tm, ttex.width);
 	vec3 sphere_pos = {sphere_posx, sphere_posy, sphere_posz};
 	float rad_sphere = 5.0f;
+	bool color = false;
 
-	GLfloat oct_posx = tickerCos + 100.0f;
-	GLfloat oct_posz = tickerSin + 100.0f;
-	GLfloat oct_posy = getHeight(oct_posx, oct_posz, tm, ttex.width);
-	vec3 oct_pos = {oct_posx, oct_posy, oct_posz};
-	float rad_oct = 5.0f;
-
-	if (checkCollision(oct_pos, sphere_pos, rad_oct, rad_sphere)) {
-		printf("collison! \n");
-
-		oct_posx = tickerSin + 100.0f;
-		oct_posz = tickerCos + 100.0f;
-
-		sphere_posx = tickerCos + 100.0f;
-		sphere_posz = tickerSin + 100.0f;
+	if (checkCollision(sphere_pos, rad_sphere)) {
+		color = true;
 	}
 
 	// sphere tranformations
@@ -380,12 +398,6 @@ void display(void)
 	sphere_transform = T(sphere_posx, sphere_posy, sphere_posz);
 	sphere_scale = S(5.0f, 5.0f, 5.0f);
 	sphere_res = Mult(sphere_transform, sphere_scale);
-
-	mat4 oct_transform, oct_scale, oct_res;
-
-	oct_scale = S(rad_oct, rad_oct, rad_oct);
-	oct_transform = T(oct_posx, oct_posy, oct_posz);
-	oct_res = Mult(oct_transform, oct_scale);
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
@@ -401,18 +413,7 @@ void display(void)
 	DrawModel(sphere, program_sphere, "inPosition", "inNormal", "inTexCoord");
 
 	// oct
-
-	glUseProgram(program_sphere);
-	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "view"), 1, GL_TRUE, total.m);
-
-	for (size_t i = 0; i < count; i++) {
-		/* code */
-	}
-
-	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "sphereMatrix"), 1, GL_TRUE, oct_res.m);
-	DrawModel(octagon, program_sphere, "inPosition", "inNormal", "inTexCoord");
-
-
+	draw_oct();
 
 	printError("display 2");
 
