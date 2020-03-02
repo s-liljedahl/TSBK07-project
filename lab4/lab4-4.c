@@ -10,6 +10,9 @@
 #include "VectorUtils3.h"
 #include "loadobj.h"
 #include "LoadTGA.h"
+#include<math.h>
+
+#define pi 3.14
 
 mat4 projectionMatrix;
 float cam_pos_x = 2.0f;
@@ -22,6 +25,55 @@ float cam_look_angle = 0.0f;
 
 GLfloat *vertexArray;
 float scaling_factor = 1.0f;
+
+// controls
+bool firstMouse = true;
+float yaw = -90.0f;
+float pitch = 90.0f;
+
+vec3 direction;
+vec3 cameraPos = {100.0f, 50.0f,  100.0f};
+vec3 cameraFront = {0.0f, 0.0f, -1.0f};
+vec3 cameraUp = {0.0f, 1.0f,  0.0f};
+float lastX = 775.0f;
+float lastY = 775.0f;
+
+float radians(float degree) {
+	float rad = (pi/180) * degree;
+	return rad;
+}
+
+void mouse(int xpos, int ypos)
+{
+	if(firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
+	lastX = xpos;
+	lastY = ypos;
+
+	const float sensitivity = 2.0f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+
+	if(pitch > 89.0f)
+		pitch = 89.0f;
+    if(pitch < -89.0f)
+        pitch = -89.0f;
+
+	direction.x = cos(radians(yaw)) * cos(radians(pitch));
+    direction.y = sin(radians(pitch));
+    direction.z = sin(radians(yaw)) * cos(radians(pitch));
+    cameraFront = Normalize(direction);
+}
 
 Model* GenerateTerrain(TextureData *tex)
 {
@@ -133,16 +185,17 @@ float getVertexHeight(Model* model, int x, int z, int texWidth)
 
 float barryCentric(vec3 p1, vec3 p2, vec3 p3, float xpos, float zpos) {
 
+	float det = (p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z);
+	float l1 = ((p2.z - p3.z) * (xpos - p3.x) + (p3.x - p2.x) * (zpos - p3.z)) / det;
+	float l2 = ((p3.z - p1.z) * (xpos - p3.x) + (p1.x - p3.x) * (zpos - p3.z)) / det;
+	float l3 = 1.0f - l1 - l2;
+	
 	// p1, p2, p3 = triangle corners
 	// xpos, zpos = coordinate inside triangle
 	// printf("p1 %f %f %f\n", p1.x, p1.y, p1.z);
 	// printf("p2 %f %f %f\n", p2.x, p2.y, p2.z);
 	// printf("p3 %f %f %f\n", p3.x, p3.y, p3.z);
-	float det = (p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z);
 	// printf("det %f\n", det);
-	float l1 = ((p2.z - p3.z) * (xpos - p3.x) + (p3.x - p2.x) * (zpos - p3.z)) / det;
-	float l2 = ((p3.z - p1.z) * (xpos - p3.x) + (p1.x - p3.x) * (zpos - p3.z)) / det;
-	float l3 = 1.0f - l1 - l2;
 	// printf("l %f %f %f\n", l1, l2, l3);
 	return l1 * p1.y + l2 * p2.y + l3 * p3.y;
 }
@@ -258,15 +311,13 @@ void display(void)
 
 	glUseProgram(program);
 
-	// float height = getHeight(2.5f, 5.1f, tm, ttex.width);
-	float height = getHeight(cam_pos_x, cam_pos_z, tm, ttex.width);
+	float height = getHeight(cam_look_x, cam_look_z, tm, ttex.width);
 	printf("Height: %f\n", height);
 
 	vec3 cam = {cam_pos_x, cam_pos_y, cam_pos_z};
-	vec3 lookAtPoint = {sin(cam_look_angle), 0, cos(cam_look_angle)};
-	camMatrix = lookAt(cam.x, height + 3, cam.z,
-				lookAtPoint.x, lookAtPoint.y, lookAtPoint.z,
-				0.0, 1.0, 0.0);
+	vec3 lookAtPoint = {cam_look_x, height + 1, cam_look_z};
+	camMatrix = lookAtv(cameraPos, VectorAdd(cameraPos, cameraFront), cameraUp);
+
 	modelView = IdentityMatrix();
 	total = Mult(camMatrix, modelView);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
@@ -285,21 +336,18 @@ void timer(int i)
 	glutPostRedisplay();
 }
 
-void mouse(int x, int y)
-{
-	printf("%d %d\n", x, y);
-}
-
 void SpecialKeyHandler(int key)
 {
+	const float cameraSpeed = 1.0f;
+
 	if (key == GLUT_KEY_RIGHT)
-    	cam_pos_z += 1;
+    	cameraPos = VectorAdd(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
 	else if (key == GLUT_KEY_LEFT)
-		cam_pos_z -= 1;
+		cameraPos = VectorSub(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
 	else if (key == GLUT_KEY_UP)
-		cam_pos_x += 1;
+		cameraPos = VectorAdd(cameraPos, ScalarMult(cameraFront, cameraSpeed));
 	else if (key == GLUT_KEY_DOWN)
-		cam_pos_x -= 1;
+		cameraPos = VectorSub(cameraPos, ScalarMult(cameraFront, cameraSpeed));
 }
 
 void KeyHandler(int key, int x, int y)
