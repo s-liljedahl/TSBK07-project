@@ -148,7 +148,7 @@ Model* GenerateTerrain(TextureData *tex)
 			normalArray[(x + z * tex->width)*3 + 2] = N_norm.z;
 	}
 
-	
+
 	for (x = 0; x < tex->width-1; x++)
 		for (z = 0; z < tex->height-1; z++)
 		{
@@ -189,7 +189,7 @@ float barryCentric(vec3 p1, vec3 p2, vec3 p3, float xpos, float zpos) {
 	float l1 = ((p2.z - p3.z) * (xpos - p3.x) + (p3.x - p2.x) * (zpos - p3.z)) / det;
 	float l2 = ((p3.z - p1.z) * (xpos - p3.x) + (p1.x - p3.x) * (zpos - p3.z)) / det;
 	float l3 = 1.0f - l1 - l2;
-	
+
 	// p1, p2, p3 = triangle corners
 	// xpos, zpos = coordinate inside triangle
 	// printf("p1 %f %f %f\n", p1.x, p1.y, p1.z);
@@ -245,7 +245,7 @@ float getHeight(float x, float z, Model *model, int texWidth)
 
 		vec3 a = {0, h1, 0};
 		vec3 b = {1, h2, 0};
-		vec3 c = {0, h3, 1};	
+		vec3 c = {0, h3, 1};
 
 		newHeight = barryCentric(a, b, c, deltaX, deltaZ);
 	}
@@ -259,7 +259,7 @@ float getHeight(float x, float z, Model *model, int texWidth)
 
 		vec3 a = {1, h1, 0};
 		vec3 b = {1, h2, 1};
-		vec3 c = {0, h3, 1};	
+		vec3 c = {0, h3, 1};
 
 		newHeight = barryCentric(a, b, c, deltaX, deltaZ);
 	}
@@ -291,6 +291,7 @@ void init(void)
 	// Load and compile shader
 	sphere = LoadModelPlus("groundsphere.obj");
 	program_sphere = loadShaders("sphere.vert", "sphere.frag");
+	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 
 	// Load and compile shader
 	program = loadShaders("lab4-3.vert", "lab4-3.frag");
@@ -314,9 +315,13 @@ void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	mat4 total, modelView, camMatrix;
-	
+
 	printError("pre display");
 
+	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
+	int radius = 70;
+	GLfloat tickerSin = sin(t / 3000) * radius;
+	GLfloat tickerCos = cos(t / 3000) * radius;
 
 	float height = getHeight(cam_look_x, cam_look_z, tm, ttex.width);
 	printf("Height: %f\n", height);
@@ -327,31 +332,33 @@ void display(void)
 
 	modelView = IdentityMatrix();
 	total = Mult(camMatrix, modelView);
-	
+
 	// sphere tranformations
-	mat4 sphere_transform, sphere_scale;
-	GLfloat movex = 100.0f;
-	GLfloat movey = 30.0f;
-	GLfloat movez = 100.0f;
+	mat4 sphere_transform, sphere_scale, sphere_res;
+	GLfloat movex = tickerSin + 100.0f;
+	GLfloat movez = tickerCos + 100.0f;
+	GLfloat movey = getHeight(movex, movez, tm, ttex.width);
 
 	sphere_transform = T(movex, movey, movez);
-	sphere_scale = S(0.5f, 0.5f, 0.5f);
+	sphere_scale = S(5.0f, 5.0f, 5.0f);
+	sphere_res = Mult(sphere_transform, sphere_scale);
 
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-
-	// sphere
-	glUseProgram(program_sphere);
-	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "sphereMatrix"), 1, GL_TRUE, sphere_scale.m);
-	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "moveMatrix"), 1, GL_TRUE, sphere_transform.m);
-	DrawModel(sphere, program_sphere, "inPosition", "inNormal", "inTexCoord");
-
 
 	//terrain
 	glUseProgram(program);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+
+	// sphere
+	glUseProgram(program_sphere);
+	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "view"), 1, GL_TRUE, total.m);
+	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "sphereMatrix"), 1, GL_TRUE, sphere_res.m);
+	DrawModel(sphere, program_sphere, "inPosition", "inNormal", "inTexCoord");
+
+
 
 	printError("display 2");
 
