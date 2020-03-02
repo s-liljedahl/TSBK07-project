@@ -35,8 +35,8 @@ vec3 direction;
 vec3 cameraPos = {100.0f, 50.0f,  100.0f};
 vec3 cameraFront = {0.0f, 0.0f, -1.0f};
 vec3 cameraUp = {0.0f, 1.0f,  0.0f};
-float lastX = 775.0f;
-float lastY = 775.0f;
+float lastX = 775.0f / 2;
+float lastY = 775.0f / 2;
 
 float radians(float degree) {
 	float rad = (pi/180) * degree;
