@@ -18,6 +18,10 @@ lab4-4 : lab4-4.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(common
 lab4-5 : lab4-5.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(commondir)loadobj.c $(commondir)LoadTGA.c $(commondir)Linux/MicroGlut.c
 	gcc -Wall -o lab4-5 -I$(commondir) -I../common/Linux -DGL_GLEXT_PROTOTYPES lab4-5.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Linux/MicroGlut.c -lXt -lX11 -lGL -lm
 
+lab4-6 : lab4-6.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(commondir)loadobj.c $(commondir)LoadTGA.c $(commondir)Linux/MicroGlut.c
+	gcc -Wall -o lab4-6 -I$(commondir) -I../common/Linux -DGL_GLEXT_PROTOTYPES lab4-6.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Linux/MicroGlut.c -lXt -lX11 -lGL -lm
+
+
 
 mac 1 : lab4-1.c $(commondir)GL_utilities.c $(commondir)VectorUtils3.c $(commondir)loadobj.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m
 	gcc -Wall -o lab4-1 -I$(commondir) -I../common/Mac -DGL_GLEXT_PROTOTYPES lab4-1.c $(commondir)GL_utilities.c $(commondir)loadobj.c $(commondir)VectorUtils3.c $(commondir)LoadTGA.c $(commondir)Mac/MicroGlut.m -framework Cocoa -framework OpenGL -lm
