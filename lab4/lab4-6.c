@@ -410,6 +410,7 @@ void display(void)
 	}
 
 	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "sphereMatrix"), 1, GL_TRUE, oct_res.m);
+	glUniform1i(glGetUniformLocation(shader, "hasCollision"), color);
 	DrawModel(octagon, program_sphere, "inPosition", "inNormal", "inTexCoord");
 
 
