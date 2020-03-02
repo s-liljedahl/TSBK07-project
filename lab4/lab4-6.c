@@ -280,9 +280,9 @@ bool checkCollision(vec3 sphere_pos, float rad_sphere) {
 
 		float distance = sqrt(dx*dx + dy*dy + dz*dz);
 
-		if (distance <= (rad_oct + rad_sphere))
-			printf("%f\n", distance);
+		if (distance <= (rad_oct + rad_sphere)) {
 			return true;
+		}
 	}
 
 	return false;
@@ -293,7 +293,7 @@ Model *m, *m2, *tm;
 Model *sphere, *octagon;
 // Reference to shader program
 GLuint program;
-GLuint program_sphere;
+GLuint program_sphere, program_oct;
 GLuint tex1, tex2;
 TextureData ttex; // terrain
 
@@ -315,8 +315,9 @@ void draw_oct()
 		oct_transform = T(x, oct_posy, z);
 		oct_res = Mult(oct_transform, oct_scale);
 
-		glUniformMatrix4fv(glGetUniformLocation(program_sphere, "sphereMatrix"), 1, GL_TRUE, oct_res.m);
-		DrawModel(octagon, program_sphere, "inPosition", "inNormal", "inTexCoord");
+		glUseProgram(program_oct);
+		glUniformMatrix4fv(glGetUniformLocation(program_oct, "sphereMatrix"), 1, GL_TRUE, oct_res.m);
+		DrawModel(octagon, program_oct, "inPosition", "inNormal", "inTexCoord");
 	}	
 }
 
@@ -337,6 +338,9 @@ void init(void)
 	octagon = LoadModelPlus("octagon.obj");
 	program_sphere = loadShaders("sphere.vert", "sphere-6.frag");
 	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+
+	program_oct = loadShaders("sphere.vert", "sphere.frag");
+	glUniformMatrix4fv(glGetUniformLocation(program_oct, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 
 	// Load and compile shader
 	program = loadShaders("lab4-5.vert", "lab4-5.frag");
@@ -413,6 +417,8 @@ void display(void)
 	glUniform1i(glGetUniformLocation(program_sphere, "hasCollision"), color);
 	DrawModel(sphere, program_sphere, "inPosition", "inNormal", "inTexCoord");
 
+	glUseProgram(program_oct);
+	glUniformMatrix4fv(glGetUniformLocation(program_oct, "view"), 1, GL_TRUE, total.m);
 	// oct
 	draw_oct();
 
