@@ -269,8 +269,10 @@ float getHeight(float x, float z, Model *model, int texWidth)
 
 // vertex array object
 Model *m, *m2, *tm;
+Model *sphere;
 // Reference to shader program
 GLuint program;
+GLuint program_sphere;
 GLuint tex1, tex2;
 TextureData ttex; // terrain
 
@@ -283,6 +285,12 @@ void init(void)
 	printError("GL inits");
 
 	projectionMatrix = frustum(-0.1, 0.1, -0.1, 0.1, 0.2, 500.0);
+
+	dumpInfo();
+
+	// Load and compile shader
+	sphere = LoadModelPlus("groundsphere.obj");
+	program_sphere = loadShaders("sphere.vert", "sphere.frag");
 
 	// Load and compile shader
 	program = loadShaders("lab4-3.vert", "lab4-3.frag");
@@ -306,10 +314,9 @@ void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	mat4 total, modelView, camMatrix;
-
+	
 	printError("pre display");
 
-	glUseProgram(program);
 
 	float height = getHeight(cam_look_x, cam_look_z, tm, ttex.width);
 	printf("Height: %f\n", height);
@@ -320,8 +327,29 @@ void display(void)
 
 	modelView = IdentityMatrix();
 	total = Mult(camMatrix, modelView);
-	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
+	
+	// sphere tranformations
+	mat4 sphere_transform, sphere_scale;
+	GLfloat movex = 100.0f;
+	GLfloat movey = 30.0f;
+	GLfloat movez = 100.0f;
 
+	sphere_transform = T(movex, movey, movez);
+	sphere_scale = S(0.5f, 0.5f, 0.5f);
+
+
+	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+
+	// sphere
+	glUseProgram(program_sphere);
+	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "sphereMatrix"), 1, GL_TRUE, sphere_scale.m);
+	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "moveMatrix"), 1, GL_TRUE, sphere_transform.m);
+	DrawModel(sphere, program_sphere, "inPosition", "inNormal", "inTexCoord");
+
+
+	//terrain
+	glUseProgram(program);
+	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
 
