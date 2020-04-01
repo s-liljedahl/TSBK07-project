@@ -1,5 +1,3 @@
-// Lab 4, terrain generation
-
 #ifdef __APPLE__
 	#include <OpenGL/gl3.h>
 	// Linking hint for Lightweight IDE
@@ -259,56 +257,12 @@ float getHeight(float x, float z, Model *model, int texWidth)
 	return newHeight;
 }
 
-bool checkCollision(vec3 sphere_pos, float rad_sphere) {
-
-	for (int i = 0; i < 5; i++)
-	{
-		float dx = oct_array[i].x - sphere_pos.x;
-		float dy = oct_array[i].y - sphere_pos.y;
-		float dz = oct_array[i].z - sphere_pos.z;
-
-		float distance = sqrt(dx*dx + dy*dy + dz*dz);
-
-		if (distance <= (rad_oct + rad_sphere)) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
 // vertex array object
-Model *m, *m2, *tm;
-Model *sphere, *octagon;
+Model *tm;
 // Reference to shader program
 GLuint program;
-GLuint program_sphere, program_oct;
-GLuint tex1, tex2;
+GLuint tex1;
 TextureData ttex; // terrain
-
-void draw_oct()
-{
-	int radius = 30;
-	mat4 oct_transform, oct_scale, oct_res;
-
-	for (int i = 0; i < 5; i++)
-	{
-		GLfloat x = (sin(i) * radius) + 100.0f;
-		GLfloat z = (cos(i) * radius + 100.0f);
-
-		GLfloat oct_posy = getHeight(x, z, tm, ttex.width);
-		vec3 oct_pos = {x, oct_posy, z};
-		oct_array[i] = oct_pos;
-
-		oct_scale = S(rad_oct, rad_oct, rad_oct);
-		oct_transform = T(x, oct_posy, z);
-		oct_res = Mult(oct_transform, oct_scale);
-
-		glUseProgram(program_oct);
-		glUniformMatrix4fv(glGetUniformLocation(program_oct, "sphereMatrix"), 1, GL_TRUE, oct_res.m);
-		DrawModel(octagon, program_oct, "inPosition", "inNormal", "inTexCoord");
-	}	
-}
 
 void init(void)
 {
@@ -323,16 +277,7 @@ void init(void)
 	dumpInfo();
 
 	// Load and compile shader
-	sphere = LoadModelPlus("groundsphere.obj");
-	octagon = LoadModelPlus("octagon.obj");
-	program_sphere = loadShaders("sphere.vert", "sphere-6.frag");
-	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
-
-	program_oct = loadShaders("sphere.vert", "sphere.frag");
-	glUniformMatrix4fv(glGetUniformLocation(program_oct, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
-
-	// Load and compile shader
-	program = loadShaders("lab4-5.vert", "lab4-5.frag");
+	program = loadShaders("terrain.vert", "terrain.frag");
 	glUseProgram(program);
 	printError("init shader");
 
@@ -346,11 +291,6 @@ void init(void)
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
-
-	glActiveTexture(GL_TEXTURE1);
-	glUniform1i(glGetUniformLocation(program, "dirt"), 1); // Texture unit 1
-	LoadTGATextureSimple("dirt.tga", &tex2);
-	glBindTexture(GL_TEXTURE_2D, tex2);		// Bind Our Texture tex2
 
 	printError("init terrain");
 }
@@ -374,42 +314,12 @@ void display(void)
 	modelView = IdentityMatrix();
 	total = Mult(camMatrix, modelView);
 
-	GLfloat sphere_posx = tickerSin + 100.0f;
-	GLfloat sphere_posz = tickerCos + 100.0f;
-	GLfloat sphere_posy = getHeight(sphere_posx, sphere_posz, tm, ttex.width);
-	vec3 sphere_pos = {sphere_posx, sphere_posy, sphere_posz};
-	float rad_sphere = 5.0f;
-	bool color = false;
-
-	if (checkCollision(sphere_pos, rad_sphere)) {
-		color = true;
-	}
-
-	// sphere tranformations
-	mat4 sphere_transform, sphere_scale, sphere_res;
-
-	sphere_transform = T(sphere_posx, sphere_posy, sphere_posz);
-	sphere_scale = S(5.0f, 5.0f, 5.0f);
-	sphere_res = Mult(sphere_transform, sphere_scale);
-
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
 	//terrain
 	glUseProgram(program);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-
-	// sphere
-	glUseProgram(program_sphere);
-	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "view"), 1, GL_TRUE, total.m);
-	glUniformMatrix4fv(glGetUniformLocation(program_sphere, "sphereMatrix"), 1, GL_TRUE, sphere_res.m);
-	glUniform1i(glGetUniformLocation(program_sphere, "hasCollision"), color);
-	DrawModel(sphere, program_sphere, "inPosition", "inNormal", "inTexCoord");
-
-	glUseProgram(program_oct);
-	glUniformMatrix4fv(glGetUniformLocation(program_oct, "view"), 1, GL_TRUE, total.m);
-	// oct
-	draw_oct();
 
 	printError("display 2");
 
