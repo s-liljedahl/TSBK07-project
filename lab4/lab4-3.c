@@ -17,6 +17,7 @@ float cam_pos_y = 5.0f;
 float cam_pos_z = 8.0f;
 
 float cam_look_x = 2.0f;
+
 float cam_look_z = 2.0f;
 float cam_look_angle = 0.0f;
 
