@@ -10,12 +10,11 @@
 #include "LoadTGA.h"
 #include<math.h>
 
+#include "skybox-loader.h"
+
 #define pi 3.14
 
 mat4 projectionMatrix;
-float cam_pos_x = 2.0f;
-float cam_pos_y = 5.0f;
-float cam_pos_z = 8.0f;
 
 float cam_look_x = 2.0f;
 float cam_look_z = 2.0f;
@@ -30,7 +29,7 @@ float yaw = -90.0f;
 float pitch = 90.0f;
 
 vec3 direction;
-vec3 cameraPos = {100.0f, 100.0f,  100.0f};
+vec3 cameraPos = {100.0f, 10.0f,  100.0f};
 vec3 cameraFront = {0.0f, 0.0f, -1.0f};
 vec3 cameraUp = {0.0f, 1.0f,  0.0f};
 float lastX = 775.0f / 2;
@@ -95,7 +94,7 @@ Model* GenerateTerrain(TextureData *tex)
 		{
 // Vertex array. You need to scale this properly
 			vertexArray[(x + z * tex->width) * 3 + 0] = scaling_factor * x / 1.0;
-			vertexArray[(x + z * tex->width) * 3 + 1] = scaling_factor * tex->imageData[(x + z * tex->width) * (tex->bpp / 8)] / 10.0;
+			vertexArray[(x + z * tex->width) * 3 + 1] = scaling_factor * tex->imageData[(x + z * tex->width) * (tex->bpp / 8)] / 50.0;
 			vertexArray[(x + z * tex->width) * 3 + 2] = scaling_factor * z / 1.0;
 // Texture coordinates. You may want to scale them.
 			texCoordArray[(x + z * tex->width)*2 + 0] = x; // (float)x / tex->width;
@@ -281,16 +280,18 @@ void init(void)
 	glUseProgram(program);
 	printError("init shader");
 
+	glActiveTexture(GL_TEXTURE0);
 	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(program, "tex"), 0); // Texture unit 0
-	LoadTGATextureSimple("maskros512.tga", &tex1);
+	LoadTGATextureSimple("resources/skybox/py.tga", &tex1);
+	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 
 	// Load terrain data
+	glActiveTexture(GL_TEXTURE1);
 	LoadTGATextureData("fft-terrain.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
+	init_skybox();
 
 	printError("init terrain");
 }
@@ -314,12 +315,19 @@ void display(void)
 	modelView = IdentityMatrix();
 	total = Mult(camMatrix, modelView);
 
+	mat4 skybox_s = S(400.0f, 100.0f, 400.0f);
+	mat4 skybox_t = T(cameraPos.x, cameraPos.y - 110.0f, cameraPos.z);
+	mat4 skybox_res = Mult(skybox_t, skybox_s);
+
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
 	//terrain
 	glUseProgram(program);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+
+	//skybox
+	draw_skybox(projectionMatrix, camMatrix, skybox_res);
 
 	printError("display 2");
 

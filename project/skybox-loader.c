@@ -1,7 +1,7 @@
 #ifdef __APPLE__
-	#include <OpenGL/gl3.h>
-	// Linking hint for Lightweight IDE
-	// uses framework Cocoa
+#include <OpenGL/gl3.h>
+// Linking hint for Lightweight IDE
+// uses framework Cocoa
 #endif
 #include "MicroGlut.h"
 #include "GL_utilities.h"
@@ -9,30 +9,30 @@
 #include "loadobj.h"
 #include "LoadTGA.h"
 
-GLuint program_sky;
-GLuint sky_tex;
-Model *skybox;
+#include "skybox-loader.h"
 
-void init_skybox(Model *model, GLuint *program, GLuint *texture) {
-  model = LoadModelPlus("skybox.obj");
-  program = loadShaders("skybox.vert", "skybox.frag");
-	LoadTGATextureSimple("SkyBox512.tga", &texture);
+GLuint program_sky;
+GLuint *texture;
+Model *model;
+
+void init_skybox()
+{
+	model = LoadModelPlus("resources/skybox/skybox.obj");
+	program_sky = loadShaders("shaders/skybox.vert", "shaders/skybox.frag");
+	glUseProgram(program_sky);
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(glGetUniformLocation(program_sky, "texUnit"), 0);
+	LoadTGATextureSimple("resources/skybox/nz.tga", &texture);
 }
 
-
-void draw_skybox(GLuint *program, Model *model, GLuint *texture, mat4 *transformMatrix, mat4 *cameraMatrix) {
-	
-	mat4 matrix1 = *cameraMatrix;
-	mat4 matrix2 = *transformMatrix;
-
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glUseProgram(program);
-
-	glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_TRUE, matrix2.m);
-
+void draw_skybox(mat4 projectionMatrix, mat4 cameraMatrix, mat4 transformMatrix)
+{
+	glUseProgram(program_sky);
+	glUniformMatrix4fv(glGetUniformLocation(program_sky, "projectionMatrix"), 1, GL_TRUE, projectionMatrix.m);
+	glUniformMatrix4fv(glGetUniformLocation(program_sky, "transform"), 1, GL_TRUE, transformMatrix.m);
 	glBindTexture(GL_TEXTURE_2D, texture); //sky texture
 	glDisable(GL_DEPTH_TEST);
-	glUniformMatrix4fv(glGetUniformLocation(program, "transform"), 1, GL_TRUE, matrix1.m);
-	DrawModel(model, program, "inPosition", "inNormal", "inTexCoord");
+	glUniformMatrix4fv(glGetUniformLocation(program_sky, "view"), 1, GL_TRUE, cameraMatrix.m);
+	DrawModel(model, program_sky, "inPosition", "inNormal", "inTexCoord");
 	glEnable(GL_DEPTH_TEST);
 }
