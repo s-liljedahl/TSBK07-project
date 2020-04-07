@@ -275,7 +275,7 @@ void init(void)
 
 	// Load and compile shader
 	program = loadShaders("terrain.vert", "terrain.frag");
-	LoadTGATextureSimple("512.tga", &tex1);
+	LoadTGATextureSimple("sand.tga", &tex1);
 
 	printError("init shader");
 
