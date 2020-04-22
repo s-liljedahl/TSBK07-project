@@ -276,7 +276,7 @@ void init(void)
 	dumpInfo();
 
 	// Load and compile shader
-	program = loadShaders("terrain.vert", "terrain.frag");
+	program = loadShaders("shaders/terrain.vert", "shaders/terrain.frag");
 	glUseProgram(program);
 	printError("init shader");
 
@@ -306,13 +306,9 @@ void display(void)
 	printError("pre display");
 
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
-	int radius = 30;
-	GLfloat tickerSin = sin(t / 3000) * radius;
-	GLfloat tickerCos = cos(t / 3000) * radius;
 
 	camMatrix = lookAtv(cameraPos, VectorAdd(cameraPos, cameraFront), cameraUp);
-
-	modelView = IdentityMatrix();
+	modelView = T(0.0f, 5.0f, 0.0f);
 	total = Mult(camMatrix, modelView);
 
 	mat4 skybox_s = S(400.0f, 100.0f, 400.0f);
@@ -324,13 +320,14 @@ void display(void)
 	//terrain
 	glUseProgram(program);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
+	glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, &cameraPos); // Fog effect
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-
+	
 	//skybox
 	draw_skybox(projectionMatrix, camMatrix, skybox_res);
 
 	printError("display 2");
-
+	
 	glutSwapBuffers();
 }
 
