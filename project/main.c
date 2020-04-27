@@ -255,9 +255,9 @@ float getHeight(float x, float z, Model *model, int texWidth)
 }
 
 // vertex array object
-Model *tm;
+Model *tm, *fish_player;
 // Reference to shader program
-GLuint program;
+GLuint program, program_fish;
 GLuint tex1;
 TextureData ttex; // terrain
 
@@ -273,6 +273,12 @@ void init(void)
 
 	dumpInfo();
 
+	// load fish
+	fish_player = LoadModelPlus("fish.obj");
+
+	program_fish = loadShaders("fish.vert", "fish.frag");
+	glUniformMatrix4fv(glGetUniformLocation(program_fish, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+
 	// Load and compile shader
 	program = loadShaders("terrain.vert", "terrain.frag");
 	LoadTGATextureSimple("sand.tga", &tex1);
@@ -284,11 +290,11 @@ void init(void)
 
 
 	glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
+	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	// Load terrain data
 	LoadTGATextureData("fft-terrain.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
-
+	
 	printError("init terrain");
 }
 
@@ -297,7 +303,7 @@ void display(void)
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	mat4 total, modelView, camMatrix;
+	mat4 total, modelView, camMatrix, camPlayer;
 
 	printError("pre display");
 
@@ -307,16 +313,40 @@ void display(void)
 	GLfloat tickerCos = cos(t / 3000) * radius;
 
 	camMatrix = lookAtv(cameraPos, VectorAdd(cameraPos, cameraFront), cameraUp);
+	camPlayer = lookAtv(cameraPos, VectorAdd(cameraPos, cameraFront), cameraUp);
 
 	modelView = IdentityMatrix();
 	total = Mult(camMatrix, modelView);
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+	
+	// fish tranformations
+	mat4 fish_init, fish_scale, fish_res, fish_transform, fish_transform1;
+
+	GLfloat rx = Norm(cameraPos);
+	GLfloat ry = Norm(VectorAdd(cameraPos, cameraFront));
+	GLfloat rz = Norm(cameraUp);
+
+	GLfloat Rx_init = cameraPos.x + cameraFront.x + cameraUp.x;
+	GLfloat Ry_init = cameraPos.y + cameraFront.y;
+	GLfloat Rz_init = cameraPos.z + cameraFront.z + cameraUp.z;
+
+	fish_transform = T(Rx_init, Ry_init, Rz_init);
+	fish_transform1 = T(rx+10, ry, rz+10);
+	//fish_init = MatrixAdd(camPlayer, f);
+	fish_scale = S(0.005f, 0.005f,0.005f);
+	fish_res = Mult(camPlayer, Mult(fish_transform, fish_scale));
 
 	//terrain
 	glUseProgram(program);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+
+	//fish
+	glUseProgram(program_fish);
+	//glUniformMatrix4fv(glGetUniformLocation(program_fish, "view"), 1, GL_TRUE, total.m);
+	glUniformMatrix4fv(glGetUniformLocation(program_fish, "sphereMatrix"), 1, GL_TRUE, fish_res.m);
+	DrawModel(fish_player, program_fish, "inPosition", "inNormal", "inTexCoord");
 
 	printError("display 2");
 
