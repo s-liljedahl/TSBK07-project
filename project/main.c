@@ -273,21 +273,20 @@ void init(void)
 
 	dumpInfo();
 
-	// load fish
+	printError("init shader");
+
+	// Load fish and compile shader
 	fish_player = LoadModelPlus("fish.obj");
 
 	program_fish = loadShaders("fish.vert", "fish.frag");
 	glUniformMatrix4fv(glGetUniformLocation(program_fish, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 
-	// Load and compile shader
+	// Load and compile terrain shader
 	program = loadShaders("terrain.vert", "terrain.frag");
 	LoadTGATextureSimple("sand.tga", &tex1);
 
-	printError("init shader");
-
 	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 0
-
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
@@ -313,7 +312,6 @@ void display(void)
 	GLfloat tickerCos = cos(t / 3000) * radius;
 
 	camMatrix = lookAtv(cameraPos, VectorAdd(cameraPos, cameraFront), cameraUp);
-	camPlayer = lookAtv(cameraPos, VectorAdd(cameraPos, cameraFront), cameraUp);
 
 	modelView = IdentityMatrix();
 	total = Mult(camMatrix, modelView);
@@ -321,21 +319,21 @@ void display(void)
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 	
 	// fish tranformations
-	mat4 fish_init, fish_scale, fish_res, fish_transform, fish_transform1;
-
-	GLfloat rx = Norm(cameraPos);
-	GLfloat ry = Norm(VectorAdd(cameraPos, cameraFront));
-	GLfloat rz = Norm(cameraUp);
+	mat4 fish_scale, fish_res, fish_transform, mr4, fish_direction;
 
 	GLfloat Rx_init = cameraPos.x + cameraFront.x + cameraUp.x;
 	GLfloat Ry_init = cameraPos.y + cameraFront.y;
 	GLfloat Rz_init = cameraPos.z + cameraFront.z + cameraUp.z;
 
 	fish_transform = T(Rx_init, Ry_init, Rz_init);
-	fish_transform1 = T(rx+10, ry, rz+10);
-	//fish_init = MatrixAdd(camPlayer, f);
-	fish_scale = S(0.005f, 0.005f,0.005f);
-	fish_res = Mult(camPlayer, Mult(fish_transform, fish_scale));
+	fish_scale = S(0.009f, 0.009f,0.009f);
+	fish_res = Mult(camMatrix, Mult(fish_transform, fish_scale));
+
+	mat3 mr3 = mat4tomat3(camMatrix); //för att endast ha med rotationerna
+	mr3 = TransposeMat3(mr3); //rotera motsatt mot kameran
+	mr4 = mat3tomat4(mr3); //tillbaks till mat4
+	fish_direction = Mult(Rz(-M_PI/2), Ry(-M_PI/2));
+	fish_res = Mult(fish_res, Mult(mr4, fish_direction)); 
 
 	//terrain
 	glUseProgram(program);
@@ -344,8 +342,7 @@ void display(void)
 
 	//fish
 	glUseProgram(program_fish);
-	//glUniformMatrix4fv(glGetUniformLocation(program_fish, "view"), 1, GL_TRUE, total.m);
-	glUniformMatrix4fv(glGetUniformLocation(program_fish, "sphereMatrix"), 1, GL_TRUE, fish_res.m);
+	glUniformMatrix4fv(glGetUniformLocation(program_fish, "fishMatrix"), 1, GL_TRUE, fish_res.m);
 	DrawModel(fish_player, program_fish, "inPosition", "inNormal", "inTexCoord");
 
 	printError("display 2");
@@ -405,7 +402,7 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
 	glutInitContextVersion(3, 2);
 	glutInitWindowSize (600, 600);
-	glutCreateWindow ("TSBK07 Lab 4");
+	glutCreateWindow ("TSBK07 Project");
 	glutDisplayFunc(display);
 	init ();
 	glutTimerFunc(20, &timer, 0);
