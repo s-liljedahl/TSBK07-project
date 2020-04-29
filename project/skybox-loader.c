@@ -31,8 +31,6 @@ void draw_skybox(mat4 projectionMatrix, mat4 cameraMatrix, mat4 transformMatrix)
 	glUniformMatrix4fv(glGetUniformLocation(program_sky, "projectionMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniformMatrix4fv(glGetUniformLocation(program_sky, "transform"), 1, GL_TRUE, transformMatrix.m);
 	glBindTexture(GL_TEXTURE_2D, texture); //sky texture
-	glDisable(GL_DEPTH_TEST);
 	glUniformMatrix4fv(glGetUniformLocation(program_sky, "view"), 1, GL_TRUE, cameraMatrix.m);
 	DrawModel(model, program_sky, "inPosition", "inNormal", "inTexCoord");
-	glEnable(GL_DEPTH_TEST);
 }

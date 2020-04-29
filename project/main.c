@@ -1,5 +1,5 @@
 #ifdef __APPLE__
-	#include <OpenGL/gl3.h>
+#include <OpenGL/gl3.h>
 	// Linking hint for Lightweight IDE
 	// uses framework Cocoa
 #endif
@@ -311,8 +311,8 @@ void display(void)
 	modelView = T(0.0f, 5.0f, 0.0f);
 	total = Mult(camMatrix, modelView);
 
-	mat4 skybox_s = S(400.0f, 100.0f, 400.0f);
-	mat4 skybox_t = T(cameraPos.x, cameraPos.y - 110.0f, cameraPos.z);
+	mat4 skybox_s = S(400.0f, 50.0f, 400.0f);
+	mat4 skybox_t = T(cameraPos.x, cameraPos.y - 5.0f, cameraPos.z);
 	mat4 skybox_res = Mult(skybox_t, skybox_s);
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
@@ -324,7 +324,9 @@ void display(void)
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
 	
 	//skybox
+	glDisable(GL_DEPTH_TEST);
 	draw_skybox(projectionMatrix, camMatrix, skybox_res);
+	glEnable(GL_DEPTH_TEST);
 
 	printError("display 2");
 	
