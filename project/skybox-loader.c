@@ -20,9 +20,10 @@ void init_skybox()
 	model = LoadModelPlus("resources/skybox/skybox.obj");
 	program_sky = loadShaders("shaders/skybox.vert", "shaders/skybox.frag");
 	glUseProgram(program_sky);
-	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(glGetUniformLocation(program_sky, "texUnit"), 0);
+	glActiveTexture(GL_TEXTURE1);
+	glUniform1i(glGetUniformLocation(program_sky, "skyTex"), 1);
 	LoadTGATextureSimple("resources/skybox/nz.tga", &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);		// Bind Our Texture tex1	
 }
 
 void draw_skybox(mat4 projectionMatrix, mat4 cameraMatrix, mat4 transformMatrix)

@@ -29,7 +29,7 @@ float yaw = -90.0f;
 float pitch = 90.0f;
 
 vec3 direction;
-vec3 cameraPos = {100.0f, 5.0f,  100.0f};
+vec3 cameraPos = {100.0f, 10.0f,  100.0f};
 vec3 cameraFront = {0.0f, 0.0f, -1.0f};
 vec3 cameraUp = {0.0f, 1.0f,  0.0f};
 float lastX = 775.0f / 2;
@@ -272,31 +272,26 @@ void init(void)
 
 	dumpInfo();
 
+	LoadTGATextureSimple("sand.tga", &tex1);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, &tex1);		// Bind Our Texture tex1	
+
 	// Load and compile shader
 	program = loadShaders("shaders/terrain.vert", "shaders/terrain.frag");
 	glUseProgram(program);
 	
-	LoadTGATextureSimple("sand.tga", &tex1);
-
 	printError("init shader");
 
-	glActiveTexture(GL_TEXTURE0);
 	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(program, "tex"), 0); // Texture unit 0
-	LoadTGATextureSimple("resources/skybox/py.tga", &tex1);
-	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
-	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 0
-
-
-	glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
+	
 	// Load terrain data
-	glActiveTexture(GL_TEXTURE1);
 	LoadTGATextureData("fft-terrain.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
+	printError("init terrain");
 
 	init_skybox();
-	printError("init terrain");
+	printError("init skybox");
 }
 
 void display(void)
@@ -315,7 +310,7 @@ void display(void)
 	total = Mult(camMatrix, modelView);
 
 	mat4 skybox_s = S(400.0f, 50.0f, 400.0f);
-	mat4 skybox_t = T(cameraPos.x, cameraPos.y - 5.0f, cameraPos.z);
+	mat4 skybox_t = T(cameraPos.x, cameraPos.y - 1.0f, cameraPos.z);
 	mat4 skybox_res = Mult(skybox_t, skybox_s);
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
