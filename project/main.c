@@ -29,7 +29,7 @@ float yaw = -90.0f;
 float pitch = 90.0f;
 
 vec3 direction;
-vec3 cameraPos = {100.0f, 10.0f,  100.0f};
+vec3 cameraPos = {100.0f, 5.0f,  100.0f};
 vec3 cameraFront = {0.0f, 0.0f, -1.0f};
 vec3 cameraUp = {0.0f, 1.0f,  0.0f};
 float lastX = 775.0f / 2;
@@ -81,20 +81,17 @@ Model* GenerateTerrain(TextureData *tex)
 	int triangleCount = (tex->width-1) * (tex->height-1) * 2;
 	int x, z;
 
-	printf("count :%d\n", triangleCount);
-
 	vertexArray = malloc(sizeof(GLfloat) * 3 * vertexCount);
 	GLfloat *normalArray = malloc(sizeof(GLfloat) * 3 * vertexCount);
 	GLfloat *texCoordArray = malloc(sizeof(GLfloat) * 2 * vertexCount);
 	GLuint *indexArray = malloc(sizeof(GLuint) * triangleCount*3);
 
-	printf("bpp %d\n", tex->bpp);
 	for (x = 0; x < tex->width; x++)
 		for (z = 0; z < tex->height; z++)
 		{
 // Vertex array. You need to scale this properly
 			vertexArray[(x + z * tex->width) * 3 + 0] = scaling_factor * x / 1.0;
-			vertexArray[(x + z * tex->width) * 3 + 1] = scaling_factor * tex->imageData[(x + z * tex->width) * (tex->bpp / 8)] / 50.0;
+			vertexArray[(x + z * tex->width) * 3 + 1] = scaling_factor * tex->imageData[(x + z * tex->width) * (tex->bpp / 8)] / 60.0;
 			vertexArray[(x + z * tex->width) * 3 + 2] = scaling_factor * z / 1.0;
 // Texture coordinates. You may want to scale them.
 			texCoordArray[(x + z * tex->width)*2 + 0] = x; // (float)x / tex->width;
@@ -278,6 +275,9 @@ void init(void)
 	// Load and compile shader
 	program = loadShaders("shaders/terrain.vert", "shaders/terrain.frag");
 	glUseProgram(program);
+	
+	LoadTGATextureSimple("sand.tga", &tex1);
+
 	printError("init shader");
 
 	glActiveTexture(GL_TEXTURE0);
@@ -285,14 +285,17 @@ void init(void)
 	glUniform1i(glGetUniformLocation(program, "tex"), 0); // Texture unit 0
 	LoadTGATextureSimple("resources/skybox/py.tga", &tex1);
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
+	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 0
 
+
+	glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	// Load terrain data
 	glActiveTexture(GL_TEXTURE1);
 	LoadTGATextureData("fft-terrain.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
 
 	init_skybox();
-
 	printError("init terrain");
 }
 
