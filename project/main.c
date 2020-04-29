@@ -340,15 +340,41 @@ void timer(int i)
 void SpecialKeyHandler(int key)
 {
 	const float cameraSpeed = 1.0f;
+	GLfloat cam_y = getHeight(cameraPos.x, cameraPos.z, tm, ttex.width);
+	vec3 zero_y = {cameraPos.x,cam_y + 2.0f,cameraPos.z};
 
 	if (key == GLUT_KEY_RIGHT)
-    	cameraPos = VectorAdd(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		if (cameraPos.y >= cam_y + 2) {
+    		cameraPos = VectorAdd(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		}
+		else {
+			cameraPos = VectorAdd(zero_y, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		}
 	else if (key == GLUT_KEY_LEFT)
-		cameraPos = VectorSub(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		if (cameraPos.y >= cam_y + 2) {
+			cameraPos = VectorSub(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		}
+		else {
+			cameraPos = VectorSub(zero_y, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		}
 	else if (key == GLUT_KEY_UP)
-		cameraPos = VectorAdd(cameraPos, ScalarMult(cameraFront, cameraSpeed));
+	{
+		if (cameraPos.y >= cam_y + 2) {
+			cameraPos = VectorAdd(cameraPos, ScalarMult(cameraFront, cameraSpeed));
+		}
+		else {
+			cameraPos = VectorAdd(zero_y, ScalarMult(cameraFront, cameraSpeed));
+		}
+	}
 	else if (key == GLUT_KEY_DOWN)
-		cameraPos = VectorSub(cameraPos, ScalarMult(cameraFront, cameraSpeed));
+	{
+		if (cameraPos.y >= cam_y + 2) {
+			cameraPos = VectorSub(cameraPos, ScalarMult(cameraFront, cameraSpeed));
+		}
+		else {
+			cameraPos = VectorSub(zero_y, ScalarMult(cameraFront, cameraSpeed));
+		}
+	}
 }
 
 int main(int argc, char **argv)
