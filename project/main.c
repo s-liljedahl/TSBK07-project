@@ -1,5 +1,5 @@
 #ifdef __APPLE__
-	#include <OpenGL/gl3.h>
+#include <OpenGL/gl3.h>
 	// Linking hint for Lightweight IDE
 	// uses framework Cocoa
 #endif
@@ -10,12 +10,11 @@
 #include "LoadTGA.h"
 #include<math.h>
 
+#include "skybox-loader.h"
+
 #define pi 3.14
 
 mat4 projectionMatrix;
-float cam_pos_x = 2.0f;
-float cam_pos_y = 5.0f;
-float cam_pos_z = 8.0f;
 
 float cam_look_x = 2.0f;
 float cam_look_z = 2.0f;
@@ -30,7 +29,7 @@ float yaw = -90.0f;
 float pitch = 90.0f;
 
 vec3 direction;
-vec3 cameraPos = {100.0f, 5.0f,  100.0f};
+vec3 cameraPos = {100.0f, 10.0f,  100.0f};
 vec3 cameraFront = {0.0f, 0.0f, -1.0f};
 vec3 cameraUp = {0.0f, 1.0f,  0.0f};
 float lastX = 775.0f / 2;
@@ -273,23 +272,26 @@ void init(void)
 
 	dumpInfo();
 
-	// Load and compile shader
-	program = loadShaders("terrain.vert", "terrain.frag");
 	LoadTGATextureSimple("sand.tga", &tex1);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, &tex1);		// Bind Our Texture tex1	
 
+	// Load and compile shader
+	program = loadShaders("shaders/terrain.vert", "shaders/terrain.frag");
+	glUseProgram(program);
+	
 	printError("init shader");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
-	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 0
-
-
-	glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
+	glUniform1i(glGetUniformLocation(program, "tex"), 0); // Texture unit 0
+	
 	// Load terrain data
 	LoadTGATextureData("fft-terrain.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
-
 	printError("init terrain");
+
+	init_skybox();
+	printError("init skybox");
 }
 
 void display(void)
@@ -302,24 +304,30 @@ void display(void)
 	printError("pre display");
 
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
-	int radius = 30;
-	GLfloat tickerSin = sin(t / 3000) * radius;
-	GLfloat tickerCos = cos(t / 3000) * radius;
 
 	camMatrix = lookAtv(cameraPos, VectorAdd(cameraPos, cameraFront), cameraUp);
-
-	modelView = IdentityMatrix();
+	modelView = T(0.0f, 5.0f, 0.0f);
 	total = Mult(camMatrix, modelView);
+
+	mat4 skybox_s = S(400.0f, 50.0f, 400.0f);
+	mat4 skybox_t = T(cameraPos.x, cameraPos.y - 1.0f, cameraPos.z);
+	mat4 skybox_res = Mult(skybox_t, skybox_s);
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
 	//terrain
 	glUseProgram(program);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
+	glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, &cameraPos); // Fog effect
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+	
+	//skybox
+	glDisable(GL_DEPTH_TEST);
+	draw_skybox(projectionMatrix, camMatrix, skybox_res);
+	glEnable(GL_DEPTH_TEST);
 
 	printError("display 2");
-
+	
 	glutSwapBuffers();
 }
 
