@@ -22,7 +22,7 @@ void init_skybox()
 	glUseProgram(program_sky);
 	glActiveTexture(GL_TEXTURE1);
 	glUniform1i(glGetUniformLocation(program_sky, "skyTex"), 1);
-	LoadTGATextureSimple("resources/skybox/nz.tga", &texture);
+	LoadTGATextureSimple("resources/skybox/skybox.tga", &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);		// Bind Our Texture tex1	
 }
 
