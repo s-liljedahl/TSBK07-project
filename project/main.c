@@ -91,7 +91,7 @@ Model* GenerateTerrain(TextureData *tex)
 		{
 // Vertex array. You need to scale this properly
 			vertexArray[(x + z * tex->width) * 3 + 0] = scaling_factor * x / 1.0;
-			vertexArray[(x + z * tex->width) * 3 + 1] = scaling_factor * tex->imageData[(x + z * tex->width) * (tex->bpp / 8)] / 60.0;
+			vertexArray[(x + z * tex->width) * 3 + 1] = scaling_factor * tex->imageData[(x + z * tex->width) * (tex->bpp / 8)] / 20.0;
 			vertexArray[(x + z * tex->width) * 3 + 2] = scaling_factor * z / 1.0;
 // Texture coordinates. You may want to scale them.
 			texCoordArray[(x + z * tex->width)*2 + 0] = x; // (float)x / tex->width;
@@ -255,8 +255,10 @@ float getHeight(float x, float z, Model *model, int texWidth)
 
 // vertex array object
 Model *tm;
+Model *grass;
 // Reference to shader program
 GLuint program;
+GLuint program_grass;
 GLuint tex1;
 TextureData ttex; // terrain
 
@@ -292,6 +294,12 @@ void init(void)
 
 	init_skybox();
 	printError("init skybox");
+
+	// grass = LoadModelPlus("resources/skybox/skybox.obj");
+	grass = LoadModelPlus("resources/seahorse.obj");
+	program_grass = loadShaders("shaders/grass.vert", "shaders/grass.frag");
+	glUseProgram(program_grass);
+
 }
 
 void display(void)
@@ -309,11 +317,16 @@ void display(void)
 	modelView = T(0.0f, 5.0f, 0.0f);
 	total = Mult(camMatrix, modelView);
 
-	mat4 skybox_s = S(400.0f, 50.0f, 400.0f);
-	mat4 skybox_t = T(cameraPos.x, cameraPos.y - 1.0f, cameraPos.z);
+	mat4 skybox_s = S(10.0f, 10.0f, 10.0f);
+	mat4 skybox_t = T(cameraPos.x, cameraPos.y - 5.0f, cameraPos.z);
 	mat4 skybox_res = Mult(skybox_t, skybox_s);
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+
+	//skybox
+	glDisable(GL_DEPTH_TEST);
+	draw_skybox(projectionMatrix, camMatrix, skybox_res);
+	glEnable(GL_DEPTH_TEST);
 
 	//terrain
 	glUseProgram(program);
@@ -321,10 +334,16 @@ void display(void)
 	glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, &cameraPos); // Fog effect
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
 	
-	//skybox
-	glDisable(GL_DEPTH_TEST);
-	draw_skybox(projectionMatrix, camMatrix, skybox_res);
-	glEnable(GL_DEPTH_TEST);
+	//grass
+	mat4 grass_s = S(0.1f, 0.1f, 0.1f);
+	mat4 grass_t = T(200.0f, 20.0f, 200.0f);
+	// mat4 grass_t = T(200.0f, getHeight(200.0f, 200.0f, tm, ttex.width), 200.0f);
+	mat4 grass_res = Mult(grass_t, grass_s);
+	glUseProgram(program_grass);
+	glUniformMatrix4fv(glGetUniformLocation(program_grass, "myMatrix"), 1, GL_TRUE, grass_res.m);
+	DrawModel(grass, program_grass, "inPosition", "inNormal", "");
+
+
 
 	printError("display 2");
 	
@@ -340,15 +359,41 @@ void timer(int i)
 void SpecialKeyHandler(int key)
 {
 	const float cameraSpeed = 1.0f;
+	GLfloat cam_y = getHeight(cameraPos.x, cameraPos.z, tm, ttex.width);
+	vec3 zero_y = {cameraPos.x,cam_y + 2.0f,cameraPos.z};
 
 	if (key == GLUT_KEY_RIGHT)
-    	cameraPos = VectorAdd(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		if (cameraPos.y >= cam_y + 2) {
+    		cameraPos = VectorAdd(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		}
+		else {
+			cameraPos = VectorAdd(zero_y, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		}
 	else if (key == GLUT_KEY_LEFT)
-		cameraPos = VectorSub(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		if (cameraPos.y >= cam_y + 2) {
+			cameraPos = VectorSub(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		}
+		else {
+			cameraPos = VectorSub(zero_y, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		}
 	else if (key == GLUT_KEY_UP)
-		cameraPos = VectorAdd(cameraPos, ScalarMult(cameraFront, cameraSpeed));
+	{
+		if (cameraPos.y >= cam_y + 2) {
+			cameraPos = VectorAdd(cameraPos, ScalarMult(cameraFront, cameraSpeed));
+		}
+		else {
+			cameraPos = VectorAdd(zero_y, ScalarMult(cameraFront, cameraSpeed));
+		}
+	}
 	else if (key == GLUT_KEY_DOWN)
-		cameraPos = VectorSub(cameraPos, ScalarMult(cameraFront, cameraSpeed));
+	{
+		if (cameraPos.y >= cam_y + 2) {
+			cameraPos = VectorSub(cameraPos, ScalarMult(cameraFront, cameraSpeed));
+		}
+		else {
+			cameraPos = VectorSub(zero_y, ScalarMult(cameraFront, cameraSpeed));
+		}
+	}
 }
 
 int main(int argc, char **argv)
