@@ -274,7 +274,7 @@ void init(void)
 
 	dumpInfo();
 
-	LoadTGATextureSimple("sand.tga", &tex1);
+	LoadTGATextureSimple("resources/sand.tga", &tex1);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, &tex1);		// Bind Our Texture tex1	
 
@@ -288,7 +288,7 @@ void init(void)
 	glUniform1i(glGetUniformLocation(program, "tex"), 0); // Texture unit 0
 	
 	// Load terrain data
-	LoadTGATextureData("fft-terrain.tga", &ttex);
+	LoadTGATextureData("resources/fft-terrain.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
 	printError("init terrain");
 
