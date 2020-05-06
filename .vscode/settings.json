@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "loadobj.h": "c"
+        "loadobj.h": "c",
+        "stdlib.h": "c"
     }
 }

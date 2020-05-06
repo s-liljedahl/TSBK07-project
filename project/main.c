@@ -329,11 +329,23 @@ void display(void)
 	fish_scale = S(0.009f, 0.009f,0.009f);
 	fish_res = Mult(camMatrix, Mult(fish_transform, fish_scale));
 
-	mat3 mr3 = mat4tomat3(camMatrix); //för att endast ha med rotationerna
-	mr3 = TransposeMat3(mr3); //rotera motsatt mot kameran
-	mr4 = mat3tomat4(mr3); //tillbaks till mat4
+	fish_res.m[0] = 0.009;
+	fish_res.m[1] = 0;
+	fish_res.m[2] = 0;
+
+	fish_res.m[4] = 0;
+	fish_res.m[5] = 0.009;
+	fish_res.m[6] = 0;
+
+	fish_res.m[8] = 0;
+	fish_res.m[9] = 0;
+	fish_res.m[10] = 0.009;
+
+	// mat3 mr3 = mat4tomat3(camMatrix); //för att endast ha med rotationerna
+	// mr3 = TransposeMat3(mr3); //rotera motsatt mot kameran
+	// mr4 = mat3tomat4(mr3); //tillbaks till mat4
 	fish_direction = Mult(Rz(-M_PI/2), Ry(-M_PI/2));
-	fish_res = Mult(fish_res, Mult(mr4, fish_direction)); 
+	fish_res = Mult(fish_res, fish_direction); 
 
 	//terrain
 	glUseProgram(program);
