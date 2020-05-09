@@ -33,7 +33,7 @@ void main(void)
 	mat3 normalMatrix1 = mat3(mdlMatrix);
 	texCoord = inTexCoord;
 
-	const vec3 light = vec3(0.3, 0.3, 0.3);
+	const vec3 light = vec3(0.5, 1.0, 0.3);
 	float shade = dot(normalize(inNormal), normalize(light));
 	exColor = vec3(shade);
 	vertPostion = vec4(inPosition, 1.0);
