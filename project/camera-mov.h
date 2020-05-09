@@ -16,7 +16,11 @@ float pitch;
 float lastX;
 float lastY;
 
-vec3 direction;
 vec3 cameraFront;
+vec3 cameraUp;
+vec3 cameraPos;
+vec3 direction;
 
 void mouse(int xpos, int ypos);
+void SpecialKeyHandler(int key);
+float radians(float degree);

@@ -11,69 +11,11 @@
 #include<math.h>
 
 #include "skybox-loader.h"
-
-#define pi 3.14
+#include "camera-mov.h"
 
 mat4 projectionMatrix;
-
-float cam_look_x = 2.0f;
-float cam_look_z = 2.0f;
-float cam_look_angle = 0.0f;
-
 GLfloat *vertexArray;
 float scaling_factor = 1.0f;
-
-// controls
-// bool firstMouse = true;
-// float yaw = -90.0f;
-// float pitch = 90.0f;
-
-// vec3 direction;
-vec3 cameraPos = {100.0f, 10.0f,  100.0f};
-// vec3 cameraFront = {0.0f, 0.0f, -1.0f};
-vec3 cameraUp = {0.0f, 1.0f,  0.0f};
-// float lastX = 775.0f / 2;
-// float lastY = 775.0f / 2;
-
-vec3 oct_array[5] = {}; 
-float rad_oct = 5.0f;
-
-float radians(float degree) {
-	float rad = (pi/180) * degree;
-	return rad;
-}
-
-// void mouse(int xpos, int ypos)
-// {
-// 	if(firstMouse)
-//     {
-//         lastX = xpos;
-//         lastY = ypos;
-//         firstMouse = false;
-//     }
-
-// 	float xoffset = xpos - lastX;
-// 	float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
-// 	lastX = xpos;
-// 	lastY = ypos;
-
-// 	const float sensitivity = 2.0f;
-// 	xoffset *= sensitivity;
-// 	yoffset *= sensitivity;
-
-// 	yaw += xoffset;
-// 	pitch += yoffset;
-
-// 	if(pitch > 89.0f)
-// 		pitch = 89.0f;
-//     if(pitch < -89.0f)
-//         pitch = -89.0f;
-
-// 	direction.x = cos(radians(yaw)) * cos(radians(pitch));
-//     direction.y = sin(radians(pitch));
-//     direction.z = sin(radians(yaw)) * cos(radians(pitch));
-//     cameraFront = Normalize(direction);
-// }
 
 Model* GenerateTerrain(TextureData *tex)
 {
@@ -285,26 +227,14 @@ void init(void)
 	glUniformMatrix4fv(glGetUniformLocation(program_fish, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 
 	// Load and compile terrain shader
-	program = loadShaders("terrain.vert", "terrain.frag");
-	LoadTGATextureSimple("sand.tga", &tex1);
+	program = loadShaders("shaders/terrain.vert", "shaders/terrain.frag");
+	LoadTGATextureSimple("resources/sand.tga", &tex1);
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 0
-
+	
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
-	LoadTGATextureSimple("resources/sand.tga", &tex1);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, &tex1);		// Bind Our Texture tex1	
-
-	// Load and compile shader
-	program = loadShaders("shaders/terrain.vert", "shaders/terrain.frag");
-	glUseProgram(program);
-	
-	printError("init shader");
-
-	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
-	glUniform1i(glGetUniformLocation(program, "tex"), 0); // Texture unit 0
 	
 	// Load terrain data
 	LoadTGATextureData("resources/fft-terrain.tga", &ttex);
@@ -312,14 +242,12 @@ void init(void)
 	
 	printError("init terrain");
 
+	//Load skybox data
 	init_skybox();
 	printError("init skybox");
 
-	// grass = LoadModelPlus("resources/skybox/skybox.obj");
 	grass = LoadModelPlus("resources/seahorse.obj");
 	program_grass = loadShaders("shaders/grass.vert", "shaders/grass.frag");
-	glUseProgram(program_grass);
-
 }
 
 void display(void)
@@ -327,7 +255,7 @@ void display(void)
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	mat4 total, modelView, camMatrix, camPlayer;
+	mat4 total, modelView, camMatrix;
 
 	printError("pre display");
 
@@ -345,30 +273,28 @@ void display(void)
 	
 	// fish tranformations
 	mat4 fish_scale, fish_res, fish_transform, mr4, fish_direction;
+	float scale_fact = 0.009f;
 
 	GLfloat Rx_init = cameraPos.x + cameraFront.x + cameraUp.x;
 	GLfloat Ry_init = cameraPos.y + cameraFront.y;
 	GLfloat Rz_init = cameraPos.z + cameraFront.z + cameraUp.z;
 
 	fish_transform = T(Rx_init, Ry_init, Rz_init);
-	fish_scale = S(0.009f, 0.009f,0.009f);
+	fish_scale = S(scale_fact, scale_fact,scale_fact);
 	fish_res = Mult(camMatrix, Mult(fish_transform, fish_scale));
 
-	fish_res.m[0] = 0.009;
+	fish_res.m[0] = scale_fact;
 	fish_res.m[1] = 0;
 	fish_res.m[2] = 0;
 
 	fish_res.m[4] = 0;
-	fish_res.m[5] = 0.009;
+	fish_res.m[5] = scale_fact;
 	fish_res.m[6] = 0;
 
 	fish_res.m[8] = 0;
 	fish_res.m[9] = 0;
-	fish_res.m[10] = 0.009;
+	fish_res.m[10] = scale_fact;
 
-	// mat3 mr3 = mat4tomat3(camMatrix); //för att endast ha med rotationerna
-	// mr3 = TransposeMat3(mr3); //rotera motsatt mot kameran
-	// mr4 = mat3tomat4(mr3); //tillbaks till mat4
 	fish_direction = Mult(Rz(-M_PI/2), Ry(-M_PI/2));
 	fish_res = Mult(fish_res, fish_direction); 
 
@@ -406,46 +332,6 @@ void timer(int i)
 {
 	glutTimerFunc(20, &timer, i);
 	glutPostRedisplay();
-}
-
-void SpecialKeyHandler(int key)
-{
-	const float cameraSpeed = 1.0f;
-	GLfloat cam_y = getHeight(cameraPos.x, cameraPos.z, tm, ttex.width);
-	vec3 zero_y = {cameraPos.x,cam_y + 2.0f,cameraPos.z};
-
-	if (key == GLUT_KEY_RIGHT)
-		if (cameraPos.y >= cam_y + 2) {
-    		cameraPos = VectorAdd(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
-		}
-		else {
-			cameraPos = VectorAdd(zero_y, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
-		}
-	else if (key == GLUT_KEY_LEFT)
-		if (cameraPos.y >= cam_y + 2) {
-			cameraPos = VectorSub(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
-		}
-		else {
-			cameraPos = VectorSub(zero_y, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
-		}
-	else if (key == GLUT_KEY_UP)
-	{
-		if (cameraPos.y >= cam_y + 2) {
-			cameraPos = VectorAdd(cameraPos, ScalarMult(cameraFront, cameraSpeed));
-		}
-		else {
-			cameraPos = VectorAdd(zero_y, ScalarMult(cameraFront, cameraSpeed));
-		}
-	}
-	else if (key == GLUT_KEY_DOWN)
-	{
-		if (cameraPos.y >= cam_y + 2) {
-			cameraPos = VectorSub(cameraPos, ScalarMult(cameraFront, cameraSpeed));
-		}
-		else {
-			cameraPos = VectorSub(zero_y, ScalarMult(cameraFront, cameraSpeed));
-		}
-	}
 }
 
 int main(int argc, char **argv)

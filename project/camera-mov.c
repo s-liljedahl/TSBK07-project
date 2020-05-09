@@ -11,16 +11,29 @@
 
 #include "camera-mov.h"
 
+#define pi 3.14
+
 // controls
-firstMouse = true;
-yaw = -90.0f;
-pitch = 90.0f;
+bool firstMouse = true;
+float yaw = -90.0f;
+float pitch = 90.0f;
 
-lastX = 775.0f / 2;
-lastY = 775.0f / 2;
+float lastX = 775.0f / 2;
+float lastY = 775.0f / 2;
 
-// vec3 direction;
-cameraFront = {0.0f, 0.0f, -1.0f};
+// // vec3 direction;
+vec3 cameraFront = {0.0f, 0.0f, -1.0f};
+vec3 cameraUp = {0.0f, 1.0f,  0.0f};
+vec3 cameraPos = {100.0f, 10.0f,  100.0f};
+vec3 direction;
+
+TextureData ttex;
+Model *tm;
+
+float radians(float degree) {
+	float rad = (pi/180) * degree;
+	return rad;
+}
 
 void mouse(int xpos, int ypos)
 {
@@ -52,4 +65,44 @@ void mouse(int xpos, int ypos)
     direction.y = sin(radians(pitch));
     direction.z = sin(radians(yaw)) * cos(radians(pitch));
     cameraFront = Normalize(direction);
+}
+
+void SpecialKeyHandler(int key)
+{
+	const float cameraSpeed = 1.0f;
+	// GLfloat cam_y = getHeight(cameraPos.x, cameraPos.z, tm, ttex.width);
+	// vec3 zero_y = {cameraPos.x,cam_y + 2.0f,cameraPos.z};
+
+	if (key == GLUT_KEY_RIGHT)
+		// if (cameraPos.y >= cam_y + 2) {
+    		cameraPos = VectorAdd(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		// }
+		// else {
+		// 	cameraPos = VectorAdd(zero_y, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		// }
+	else if (key == GLUT_KEY_LEFT)
+		// if (cameraPos.y >= cam_y + 2) {
+			cameraPos = VectorSub(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		// }
+		// else {
+		// 	cameraPos = VectorSub(zero_y, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		// }
+	else if (key == GLUT_KEY_UP)
+	{
+	// 	if (cameraPos.y >= cam_y + 2) {
+			cameraPos = VectorAdd(cameraPos, ScalarMult(cameraFront, cameraSpeed));
+	// 	}
+	// 	else {
+	// 		cameraPos = VectorAdd(zero_y, ScalarMult(cameraFront, cameraSpeed));
+	// 	}
+	}
+	else if (key == GLUT_KEY_DOWN)
+	{
+		// if (cameraPos.y >= cam_y + 2) {
+			cameraPos = VectorSub(cameraPos, ScalarMult(cameraFront, cameraSpeed));
+		// }
+		// else {
+		// 	cameraPos = VectorSub(zero_y, ScalarMult(cameraFront, cameraSpeed));
+		// }
+	}
 }
