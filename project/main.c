@@ -1,5 +1,5 @@
 #ifdef __APPLE__
-	#include <OpenGL/gl3.h>
+#include <OpenGL/gl3.h>
 	// Linking hint for Lightweight IDE
 	// uses framework Cocoa
 #endif
@@ -10,12 +10,11 @@
 #include "LoadTGA.h"
 #include<math.h>
 
+#include "skybox-loader.h"
+
 #define pi 3.14
 
 mat4 projectionMatrix;
-float cam_pos_x = 2.0f;
-float cam_pos_y = 5.0f;
-float cam_pos_z = 8.0f;
 
 float cam_look_x = 2.0f;
 float cam_look_z = 2.0f;
@@ -25,16 +24,16 @@ GLfloat *vertexArray;
 float scaling_factor = 1.0f;
 
 // controls
-bool firstMouse = true;
-float yaw = -90.0f;
-float pitch = 90.0f;
+// bool firstMouse = true;
+// float yaw = -90.0f;
+// float pitch = 90.0f;
 
-vec3 direction;
-vec3 cameraPos = {100.0f, 5.0f,  100.0f};
-vec3 cameraFront = {0.0f, 0.0f, -1.0f};
+// vec3 direction;
+vec3 cameraPos = {100.0f, 10.0f,  100.0f};
+// vec3 cameraFront = {0.0f, 0.0f, -1.0f};
 vec3 cameraUp = {0.0f, 1.0f,  0.0f};
-float lastX = 775.0f / 2;
-float lastY = 775.0f / 2;
+// float lastX = 775.0f / 2;
+// float lastY = 775.0f / 2;
 
 vec3 oct_array[5] = {}; 
 float rad_oct = 5.0f;
@@ -44,37 +43,37 @@ float radians(float degree) {
 	return rad;
 }
 
-void mouse(int xpos, int ypos)
-{
-	if(firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
+// void mouse(int xpos, int ypos)
+// {
+// 	if(firstMouse)
+//     {
+//         lastX = xpos;
+//         lastY = ypos;
+//         firstMouse = false;
+//     }
 
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
-	lastX = xpos;
-	lastY = ypos;
+// 	float xoffset = xpos - lastX;
+// 	float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
+// 	lastX = xpos;
+// 	lastY = ypos;
 
-	const float sensitivity = 2.0f;
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
+// 	const float sensitivity = 2.0f;
+// 	xoffset *= sensitivity;
+// 	yoffset *= sensitivity;
 
-	yaw += xoffset;
-	pitch += yoffset;
+// 	yaw += xoffset;
+// 	pitch += yoffset;
 
-	if(pitch > 89.0f)
-		pitch = 89.0f;
-    if(pitch < -89.0f)
-        pitch = -89.0f;
+// 	if(pitch > 89.0f)
+// 		pitch = 89.0f;
+//     if(pitch < -89.0f)
+//         pitch = -89.0f;
 
-	direction.x = cos(radians(yaw)) * cos(radians(pitch));
-    direction.y = sin(radians(pitch));
-    direction.z = sin(radians(yaw)) * cos(radians(pitch));
-    cameraFront = Normalize(direction);
-}
+// 	direction.x = cos(radians(yaw)) * cos(radians(pitch));
+//     direction.y = sin(radians(pitch));
+//     direction.z = sin(radians(yaw)) * cos(radians(pitch));
+//     cameraFront = Normalize(direction);
+// }
 
 Model* GenerateTerrain(TextureData *tex)
 {
@@ -92,7 +91,7 @@ Model* GenerateTerrain(TextureData *tex)
 		{
 // Vertex array. You need to scale this properly
 			vertexArray[(x + z * tex->width) * 3 + 0] = scaling_factor * x / 1.0;
-			vertexArray[(x + z * tex->width) * 3 + 1] = scaling_factor * tex->imageData[(x + z * tex->width) * (tex->bpp / 8)] / 60.0;
+			vertexArray[(x + z * tex->width) * 3 + 1] = scaling_factor * tex->imageData[(x + z * tex->width) * (tex->bpp / 8)] / 20.0;
 			vertexArray[(x + z * tex->width) * 3 + 2] = scaling_factor * z / 1.0;
 // Texture coordinates. You may want to scale them.
 			texCoordArray[(x + z * tex->width)*2 + 0] = x; // (float)x / tex->width;
@@ -258,6 +257,10 @@ float getHeight(float x, float z, Model *model, int texWidth)
 Model *tm, *fish_player;
 // Reference to shader program
 GLuint program, program_fish;
+Model *grass;
+// Reference to shader program
+GLuint program;
+GLuint program_grass;
 GLuint tex1;
 TextureData ttex; // terrain
 
@@ -290,11 +293,33 @@ void init(void)
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
+	LoadTGATextureSimple("resources/sand.tga", &tex1);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, &tex1);		// Bind Our Texture tex1	
+
+	// Load and compile shader
+	program = loadShaders("shaders/terrain.vert", "shaders/terrain.frag");
+	glUseProgram(program);
+	
+	printError("init shader");
+
+	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+	glUniform1i(glGetUniformLocation(program, "tex"), 0); // Texture unit 0
+	
 	// Load terrain data
-	LoadTGATextureData("fft-terrain.tga", &ttex);
+	LoadTGATextureData("resources/fft-terrain.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
 	
 	printError("init terrain");
+
+	init_skybox();
+	printError("init skybox");
+
+	// grass = LoadModelPlus("resources/skybox/skybox.obj");
+	grass = LoadModelPlus("resources/seahorse.obj");
+	program_grass = loadShaders("shaders/grass.vert", "shaders/grass.frag");
+	glUseProgram(program_grass);
+
 }
 
 void display(void)
@@ -307,14 +332,14 @@ void display(void)
 	printError("pre display");
 
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
-	int radius = 30;
-	GLfloat tickerSin = sin(t / 3000) * radius;
-	GLfloat tickerCos = cos(t / 3000) * radius;
 
 	camMatrix = lookAtv(cameraPos, VectorAdd(cameraPos, cameraFront), cameraUp);
-
-	modelView = IdentityMatrix();
+	modelView = T(0.0f, 5.0f, 0.0f);
 	total = Mult(camMatrix, modelView);
+
+	mat4 skybox_s = S(10.0f, 10.0f, 10.0f);
+	mat4 skybox_t = T(cameraPos.x, cameraPos.y - 5.0f, cameraPos.z);
+	mat4 skybox_res = Mult(skybox_t, skybox_s);
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 	
@@ -347,10 +372,25 @@ void display(void)
 	fish_direction = Mult(Rz(-M_PI/2), Ry(-M_PI/2));
 	fish_res = Mult(fish_res, fish_direction); 
 
+	//skybox
+	glDisable(GL_DEPTH_TEST);
+	draw_skybox(projectionMatrix, camMatrix, skybox_res);
+	glEnable(GL_DEPTH_TEST);
+
 	//terrain
 	glUseProgram(program);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
+	glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, &cameraPos); // Fog effect
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+	
+	//grass
+	mat4 grass_s = S(0.1f, 0.1f, 0.1f);
+	mat4 grass_t = T(200.0f, 20.0f, 200.0f);
+	// mat4 grass_t = T(200.0f, getHeight(200.0f, 200.0f, tm, ttex.width), 200.0f);
+	mat4 grass_res = Mult(grass_t, grass_s);
+	glUseProgram(program_grass);
+	glUniformMatrix4fv(glGetUniformLocation(program_grass, "myMatrix"), 1, GL_TRUE, grass_res.m);
+	DrawModel(grass, program_grass, "inPosition", "inNormal", "");
 
 	//fish
 	glUseProgram(program_fish);
@@ -358,7 +398,7 @@ void display(void)
 	DrawModel(fish_player, program_fish, "inPosition", "inNormal", "inTexCoord");
 
 	printError("display 2");
-
+	
 	glutSwapBuffers();
 }
 

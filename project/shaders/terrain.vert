@@ -7,12 +7,29 @@ out vec2 texCoord;
 out vec4 vertPostion;
 out vec3 exColor;
 
+out float visibility;
+
 // NY
 uniform mat4 projMatrix;
 uniform mat4 mdlMatrix;
 
+uniform vec3 cameraPos;
+
+float getFogFactor(float d)
+{
+    const float FogMax = 50.0;
+    const float FogMin = 1.0;
+    if (d>=FogMax) return 1;
+    if (d<=FogMin) return 0;
+    return 1 - (FogMax - d) / (FogMax - FogMin);
+}
+
 void main(void)
 {
+	float dist = distance(cameraPos, inPosition.xyz);
+	visibility = getFogFactor(dist);
+
+
 	mat3 normalMatrix1 = mat3(mdlMatrix);
 	texCoord = inTexCoord;
 
