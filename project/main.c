@@ -119,17 +119,12 @@ void display(void)
 	glDisable(GL_DEPTH_TEST);
 	draw_skybox(projectionMatrix, camMatrix, skybox_res);
 	glEnable(GL_DEPTH_TEST);
+	printError("display skybox");
 	
 	// terrain
-	draw_terrain(cameraPos, total);
+	draw_terrain(cameraPos, total, t);
+	printError("display terrain");
 
-	// grass
-	mat4 grass_s = S(0.1f, 0.1f, 0.1f);
-	mat4 grass_t = T(200.0f, 20.0f, 200.0f);
-	mat4 grass_res = Mult(grass_t, grass_s);
-	glUseProgram(program_grass);
-	glUniformMatrix4fv(glGetUniformLocation(program_grass, "myMatrix"), 1, GL_TRUE, grass_res.m);
-	DrawModel(grass, program_grass, "inPosition", "inNormal", "");
 
 	printError("display 2");
 	glutSwapBuffers();

@@ -23,7 +23,7 @@ void init_terrain(mat4 projectionMatrix)
 {
 	LoadTGATextureSimple("resources/sand.tga", &tex1);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, &tex1); // Bind Our Texture tex1
+	glBindTexture(GL_TEXTURE_2D, tex1); // Bind Our Texture tex1
 
 	// Load and compile shader
 	program = loadShaders("shaders/terrain.vert", "shaders/terrain.frag");
@@ -37,10 +37,11 @@ void init_terrain(mat4 projectionMatrix)
 	printError("init terrain");
 }
 
-void draw_terrain(vec3 cameraPos, mat4 total)
+void draw_terrain(vec3 cameraPos, mat4 total, GLfloat time)
 {
 	//terrain
 	glUseProgram(program);
+	glUniform1f(glGetUniformLocation(program, "t"), time);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
 	glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, &cameraPos); // Fog effect
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");

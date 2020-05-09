@@ -5,25 +5,17 @@ in vec2 texCoord;
 in vec3 exColor;
 in vec4 vertPostion;
 uniform sampler2D tex;
-uniform sampler2D dirt;
+uniform float t;
 
 in float visibility;
 
 void main(void)
 {
-	vec4 color;
-	if (vertPostion.y < 1) {
-		color = vec4(exColor, 1.0) * texture(dirt, texCoord);
-	}
-	else if (vertPostion.y >= 1 && vertPostion.y < 5) {
-		float f = sin(vertPostion.y / 5);
-		color = vec4(exColor, 1.0) * ( ( (1 - f) * texture(dirt, texCoord)) + (f *  texture(tex, texCoord)) );
-	} else {
-		color = vec4(exColor, 1.0) * texture(tex, texCoord);
-	}
-
+	vec4 skyColor = vec4(0.2, 0.6353, 0.9255, 1.0); // same as skybox
+	vec4 lightColor = vec4(0.2784, 0.2549, 0.2039, 0.103); //ambient light
+	vec4 color = vec4(exColor, 1.0) * texture(tex, texCoord);
 	float fogFactor = clamp(visibility, 0.0, 1.0);
-	vec4 skyColor = vec4(0.1, 0.5, 0.6, 1.0);
 	vec4 fragColor = mix(color, skyColor, fogFactor);
-	outColor = fragColor;
+	vec4 fragColorDark = fragColor + lightColor * 0.05;
+	outColor = sin(vertPostion.x + t / 500) * fragColor + (1.0 - sin(vertPostion.x + t / 500)) * fragColorDark;
 }

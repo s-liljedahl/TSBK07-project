@@ -17,7 +17,7 @@ uniform vec3 cameraPos;
 
 float getFogFactor(float d)
 {
-    const float FogMax = 50.0;
+    const float FogMax = 70.0;
     const float FogMin = 1.0;
     if (d>=FogMax) return 1;
     if (d<=FogMin) return 0;
