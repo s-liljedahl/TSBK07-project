@@ -1,29 +1,28 @@
 #version 150
 
-out vec4 outColor;
 in vec2 texCoord;
 in vec3 exColor;
 in vec4 vertPostion;
 uniform sampler2D tex;
-uniform sampler2D dirt;
+uniform float t;
+out vec4 outColor;
 
 in float visibility;
 
 void main(void)
 {
-	vec4 color;
-	if (vertPostion.y < 1) {
-		color = vec4(exColor, 1.0) * texture(dirt, texCoord);
-	}
-	else if (vertPostion.y >= 1 && vertPostion.y < 5) {
-		float f = sin(vertPostion.y / 5);
-		color = vec4(exColor, 1.0) * ( ( (1 - f) * texture(dirt, texCoord)) + (f *  texture(tex, texCoord)) );
-	} else {
-		color = vec4(exColor, 1.0) * texture(tex, texCoord);
-	}
-
+	float timeScaled = t/500;
+	vec4 skyColor = vec4(0.2, 0.6353, 0.9255, 1.0); // same as skybox
+	vec4 lightColor1 = vec4(0.5216, 0.4784, 0.302, 1.0); //ambient light
+	vec4 lightColor2 = vec4(0.4314, 0.3804, 0.2824, 1.0); //ambient light
+	vec4 color = vec4(exColor, 1.0) * texture(tex, texCoord);
 	float fogFactor = clamp(visibility, 0.0, 1.0);
-	vec4 skyColor = vec4(0.1, 0.5, 0.6, 1.0);
 	vec4 fragColor = mix(color, skyColor, fogFactor);
-	outColor = fragColor;
+
+	vec4 fragColorDark1 = fragColor + lightColor1 * 0.1 * (1 - fogFactor);
+	vec4 fragColorDark2 = fragColor + lightColor2 * 0.1 * (1 - fogFactor);
+
+	vec4 outColor1 = sin(vertPostion.x + timeScaled) * fragColor + (1.0 - sin(vertPostion.x + timeScaled)) * fragColorDark1;
+	vec4 outColor2 = sin(vertPostion.z + timeScaled) * fragColor + (1.0 - sin(vertPostion.z + timeScaled)) * fragColorDark2;
+	outColor = outColor1 * 0.5 + outColor2 * 0.5;
 }

@@ -14,9 +14,9 @@
 float scaling_factor = 1.0f;
 
 GLfloat *vertexArray;
-GLuint program, program_fish, program_shark;
+GLuint program, program_fish, program_shark, program_ship, program_grass;
+Model *tm, *fish_player, *shark, *ship, *grass;
 GLuint tex1;
-Model *tm, *fish_player, *shark;
 TextureData ttex; // terrain
 
 void init_terrain(mat4 projectionMatrix)
@@ -50,13 +50,85 @@ void init_terrain(mat4 projectionMatrix)
 	printError("init shark");
 }
 
-void draw_terrain(vec3 cameraPos, mat4 total)
+void init_ship(mat4 projectionMatrix) {
+	// Load ship and compile shader
+	ship = LoadModelPlus("resources/Submarine.obj");
+	printError("init ship 1");
+	program_ship = loadShaders("shaders/ship.vert", "shaders/ship.frag");
+	glUseProgram(program_ship);
+	printError("init ship 2");
+	glUniformMatrix4fv(glGetUniformLocation(program_ship, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+	printError("init ship 3");
+}
+
+void init_grass(mat4 projectionMatrix) {
+	grass = LoadModelPlus("resources/grass.obj");
+	printError("init grass 1");
+	program_grass = loadShaders("shaders/grass.vert", "shaders/grass.frag");
+	glUseProgram(program_grass);
+	printError("init grass 2");
+	glUniformMatrix4fv(glGetUniformLocation(program_grass, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+	printError("init grass 3");
+}
+
+void draw_terrain(vec3 cameraPos, mat4 total, GLfloat time)
 {
 	//terrain
 	glUseProgram(program);
+	glUniform1f(glGetUniformLocation(program, "t"), time);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
 	glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, &cameraPos); // Fog effect
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+}
+
+float getFogFactor(vec3 p1, vec3 p2)
+{
+		float dx = p1.x - p2.x; 
+		float dy = p1.y - p2.y;
+		float dz = p1.z - p2.z;
+		float d = sqrt(dx*dx + dy*dy + dz*dz);
+
+		// printf("d %f", d);
+    const float FogMax = 100.0;
+    const float FogMin = 1.0;
+    if (d>=FogMax) return 1;
+    if (d<=FogMin) return 0;
+    return 1 - (FogMax - d) / (FogMax - FogMin);
+}
+
+void draw_ship(mat4 total, vec3 cameraPos, GLfloat time) 
+{
+	float scale_fact = 0.02f;
+	vec3 pos = {70.0f, getHeight(70.0f, 120.0f) + 1.0f, 120.0f};
+	mat4 transform = T(pos.x, pos.y, pos.z);
+	mat4 scale = S(scale_fact, scale_fact,scale_fact);
+	mat4 res = Mult(total, Mult(transform, scale));
+
+	GLfloat visibility = getFogFactor(cameraPos, pos);
+
+	glUseProgram(program_ship);
+	glUniform1f(glGetUniformLocation(program_ship, "t"), time);
+	glUniform1f(glGetUniformLocation(program_ship, "visibility"), visibility);
+	glUniformMatrix4fv(glGetUniformLocation(program_ship, "shipMatrix"), 1, GL_TRUE, res.m);
+	DrawModel(ship, program_ship, "inPosition", "inNormal", "inTexCoord");
+}
+
+
+void draw_grass(mat4 total, vec3 cameraPos, GLfloat time) 
+{
+	float scale_fact = 0.2f;
+	vec3 pos = {100.0f, getHeight(100.0f, 80.0f) + 1.0f, 80.0f};
+	mat4 transform = T(pos.x, pos.y, pos.z);
+	mat4 scale = S(scale_fact, scale_fact,scale_fact);
+	mat4 res = Mult(total, Mult(transform, scale));
+
+	GLfloat visibility = getFogFactor(cameraPos, pos);
+
+	glUseProgram(program_grass);
+	glUniform1f(glGetUniformLocation(program_grass, "t"), time);
+	glUniform1f(glGetUniformLocation(program_grass, "visibility"), visibility);
+	glUniformMatrix4fv(glGetUniformLocation(program_grass, "shipMatrix"), 1, GL_TRUE, res.m);
+	DrawModel(grass, program_grass, "inPosition", "inNormal", "inTexCoord");
 }
 
 void draw_shark(GLfloat t, mat4 total)
