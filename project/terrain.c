@@ -15,8 +15,10 @@ float scaling_factor = 1.0f;
 
 GLfloat *vertexArray;
 GLuint program;
+GLuint program_ship;
 GLuint tex1;
 Model *tm;
+Model *ship;
 TextureData ttex; // terrain
 
 void init_terrain(mat4 projectionMatrix)
@@ -37,6 +39,17 @@ void init_terrain(mat4 projectionMatrix)
 	printError("init terrain");
 }
 
+void init_ship(mat4 projectionMatrix) {
+	// Load ship and compile shader
+	ship = LoadModelPlus("resources/Submarine.obj");
+	printError("init ship 1");
+	program_ship = loadShaders("shaders/ship.vert", "shaders/ship.frag");
+	glUseProgram(program_ship);
+	printError("init ship 2");
+	glUniformMatrix4fv(glGetUniformLocation(program_ship, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+	printError("init ship 3");
+}
+
 void draw_terrain(vec3 cameraPos, mat4 total, GLfloat time)
 {
 	//terrain
@@ -46,6 +59,39 @@ void draw_terrain(vec3 cameraPos, mat4 total, GLfloat time)
 	glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, &cameraPos); // Fog effect
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
 }
+
+float getFogFactor(vec3 p1, vec3 p2)
+{
+		float dx = p1.x - p2.x; 
+		float dy = p1.y - p2.y;
+		float dz = p1.z - p2.z;
+		float d = sqrt(dx*dx + dy*dy + dz*dz);
+
+		// printf("d %f", d);
+    const float FogMax = 100.0;
+    const float FogMin = 1.0;
+    if (d>=FogMax) return 1;
+    if (d<=FogMin) return 0;
+    return 1 - (FogMax - d) / (FogMax - FogMin);
+}
+
+void draw_ship(mat4 total, vec3 cameraPos, GLfloat time) 
+{
+	float scale_fact = 0.02f;
+	vec3 pos = {70.0f, getHeight(70.0f, 120.0f) + 1.0f, 120.0f};
+	mat4 transform = T(pos.x, pos.y, pos.z);
+	mat4 scale = S(scale_fact, scale_fact,scale_fact);
+	mat4 res = Mult(total, Mult(transform, scale));
+
+	GLfloat visibility = getFogFactor(cameraPos, pos);
+
+	glUseProgram(program_ship);
+	glUniform1f(glGetUniformLocation(program_ship, "t"), time);
+	glUniform1f(glGetUniformLocation(program_ship, "visibility"), visibility);
+	glUniformMatrix4fv(glGetUniformLocation(program_ship, "shipMatrix"), 1, GL_TRUE, res.m);
+	DrawModel(ship, program_ship, "inPosition", "inNormal", "inTexCoord");
+}
+
 
 float getHeight(float x, float z)
 {

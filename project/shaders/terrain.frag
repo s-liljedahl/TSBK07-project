@@ -1,11 +1,11 @@
 #version 150
 
-out vec4 outColor;
 in vec2 texCoord;
 in vec3 exColor;
 in vec4 vertPostion;
 uniform sampler2D tex;
 uniform float t;
+out vec4 outColor;
 
 in float visibility;
 

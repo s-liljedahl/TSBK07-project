@@ -83,14 +83,12 @@ void init(void)
 
 	dumpInfo();
 
-	printError("init shader");
 	init_terrain(projectionMatrix);
+	printError("init shader");
+	init_ship(projectionMatrix);
+	printError("init ship");
 	init_skybox();
 	printError("init skybox");
-
-	grass = LoadModelPlus("resources/seahorse.obj");
-	program_grass = loadShaders("shaders/grass.vert", "shaders/grass.frag");
-	glUseProgram(program_grass);
 
 }
 
@@ -110,7 +108,7 @@ void display(void)
 	total = Mult(camMatrix, modelView);
 
 	mat4 skybox_s = S(10.0f, 10.0f, 10.0f);
-	mat4 skybox_t = T(cameraPos.x, cameraPos.y - 5.0f, cameraPos.z);
+	mat4 skybox_t = T(cameraPos.x, - 3.0f, cameraPos.z);
 	mat4 skybox_res = Mult(skybox_t, skybox_s);
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
@@ -120,11 +118,14 @@ void display(void)
 	draw_skybox(projectionMatrix, camMatrix, skybox_res);
 	glEnable(GL_DEPTH_TEST);
 	printError("display skybox");
+
+	// ship
+	draw_ship(total, cameraPos, t);
+	printError("display ship");
 	
 	// terrain
 	draw_terrain(cameraPos, total, t);
 	printError("display terrain");
-
 
 	printError("display 2");
 	glutSwapBuffers();

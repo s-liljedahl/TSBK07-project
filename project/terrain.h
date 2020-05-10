@@ -10,7 +10,9 @@
 #include "LoadTGA.h"
 
 void init_terrain(mat4 projectionMatrix);
+void init_ship(mat4 projectionMatrix);
 void draw_terrain(vec3 cameraPos, mat4 total, GLfloat time);
+void draw_ship(mat4 total, vec3 cameraPos, GLfloat time);
 float getHeight(float x, float z);
 Model *GenerateTerrain(TextureData *tex);
 float getVertexHeight(Model *model, int x, int z, int texWidth);
