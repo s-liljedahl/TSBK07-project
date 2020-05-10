@@ -10,6 +10,7 @@
 #include "LoadTGA.h"
 
 #include "camera-mov.h"
+#include "terrain.h"
 
 #define pi 3.14
 
@@ -24,7 +25,7 @@ float lastY = 775.0f / 2;
 // // vec3 direction;
 vec3 cameraFront = {0.0f, 0.0f, -1.0f};
 vec3 cameraUp = {0.0f, 1.0f,  0.0f};
-vec3 cameraPos = {100.0f, 10.0f,  100.0f};
+vec3 cameraPos = {90.0f, 7.5f,  90.0f};
 vec3 direction;
 
 TextureData ttex;
@@ -70,39 +71,40 @@ void mouse(int xpos, int ypos)
 void SpecialKeyHandler(int key)
 {
 	const float cameraSpeed = 1.0f;
-	// GLfloat cam_y = getHeight(cameraPos.x, cameraPos.z, tm, ttex.width);
-	// vec3 zero_y = {cameraPos.x,cam_y + 2.0f,cameraPos.z};
+	const float height_y = 7.5f;
+	GLfloat cam_y = getHeight(cameraPos.x + cameraFront.x, cameraPos.z + cameraFront.z);
+	vec3 zero_y = {cameraPos.x+ cameraFront.x,cam_y + height_y, cameraPos.z+ cameraFront.z};
 
 	if (key == GLUT_KEY_RIGHT)
-		// if (cameraPos.y >= cam_y + 2) {
+		if (cameraPos.y >= cam_y + height_y) {
     		cameraPos = VectorAdd(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
-		// }
-		// else {
-		// 	cameraPos = VectorAdd(zero_y, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
-		// }
+		}
+		else {
+			cameraPos = VectorAdd(zero_y, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		}
 	else if (key == GLUT_KEY_LEFT)
-		// if (cameraPos.y >= cam_y + 2) {
+		if (cameraPos.y >= cam_y + height_y) {
 			cameraPos = VectorSub(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
-		// }
-		// else {
-		// 	cameraPos = VectorSub(zero_y, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
-		// }
+		}
+		else {
+			cameraPos = VectorSub(zero_y, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
+		}
 	else if (key == GLUT_KEY_UP)
 	{
-	// 	if (cameraPos.y >= cam_y + 2) {
+		if (cameraPos.y >= cam_y + height_y) {
 			cameraPos = VectorAdd(cameraPos, ScalarMult(cameraFront, cameraSpeed));
-	// 	}
-	// 	else {
-	// 		cameraPos = VectorAdd(zero_y, ScalarMult(cameraFront, cameraSpeed));
-	// 	}
+		}
+		else {
+			cameraPos = VectorAdd(zero_y, ScalarMult(cameraFront, cameraSpeed));
+		}
 	}
 	else if (key == GLUT_KEY_DOWN)
 	{
-		// if (cameraPos.y >= cam_y + 2) {
+		if (cameraPos.y >= cam_y + height_y) {
 			cameraPos = VectorSub(cameraPos, ScalarMult(cameraFront, cameraSpeed));
-		// }
-		// else {
-		// 	cameraPos = VectorSub(zero_y, ScalarMult(cameraFront, cameraSpeed));
-		// }
+		}
+		else {
+			cameraPos = VectorSub(zero_y, ScalarMult(cameraFront, cameraSpeed));
+		}
 	}
 }
