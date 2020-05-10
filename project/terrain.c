@@ -14,9 +14,9 @@
 float scaling_factor = 1.0f;
 
 GLfloat *vertexArray;
-GLuint program, program_fish;
+GLuint program, program_fish, program_shark;
 GLuint tex1;
-Model *tm, *fish_player;
+Model *tm, *fish_player, *shark;
 TextureData ttex; // terrain
 
 void init_terrain(mat4 projectionMatrix)
@@ -30,18 +30,24 @@ void init_terrain(mat4 projectionMatrix)
 	program = loadShaders("shaders/terrain.vert", "shaders/terrain.frag");
 	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(program, "tex"), 0); // Texture unit 0
-
 	printError("init shader");
+
 	// Load terrain data
 	LoadTGATextureData("resources/fft-terrain.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
 	printError("init terrain");
 
-		// Load fish and compile shader
-	fish_player = LoadModelPlus("fish.obj");
-
-	program_fish = loadShaders("fish.vert", "fish.frag");
+	// Load fish and compile shader
+	fish_player = LoadModelPlus("resources/fish.obj");
+	program_fish = loadShaders("shaders/fish.vert", "shaders/fish.frag");
 	glUniformMatrix4fv(glGetUniformLocation(program_fish, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+	printError("init fish");
+
+	// Load shark and compile shader
+	shark = LoadModelPlus("resources/shark.obj");
+	program_shark = loadShaders("shaders/sphere.vert", "shaders/sphere-6.frag");
+	glUniformMatrix4fv(glGetUniformLocation(program_shark, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+	printError("init shark");
 }
 
 void draw_terrain(vec3 cameraPos, mat4 total)
@@ -53,9 +59,60 @@ void draw_terrain(vec3 cameraPos, mat4 total)
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
 }
 
+void draw_shark(GLfloat t, mat4 total)
+{
+	int radius = 4;
+	mat4 shark_transform, shark_scale, shark_res, shark_direction, shark_pos;
+	float scale_fact = 0.2f;
+	GLfloat ticker = (t / 3500);
+
+	for (int i = 0; i < 2; i++) 
+	{
+		//Initiera position
+		GLfloat x = (sin(i) * radius) + 100.0f;
+		GLfloat z = (cos(i) * radius) + 100.0f;
+		GLfloat y = getHeight(x, z) + 2.0f;
+
+		shark_pos = T(x, y, z);
+
+		//Initiera tid
+		GLfloat shark_posx = sin(ticker) * radius;
+		GLfloat shark_posz = cos(ticker) * radius;
+		GLfloat shark_posy = getHeight(shark_posx, shark_posz) + 2.0f;
+
+		shark_transform = T(shark_posx, shark_posy, shark_posz);
+
+		//Skala hajen
+		shark_scale = S(scale_fact, scale_fact, scale_fact);
+
+		shark_res = Mult(shark_pos, shark_scale);
+		shark_res = Mult(shark_transform, shark_res);
+
+		shark_res.m[0] = scale_fact;
+		shark_res.m[1] = 0;
+		shark_res.m[2] = 0;
+
+		shark_res.m[4] = 0;
+		shark_res.m[5] = scale_fact;
+		shark_res.m[6] = 0;
+
+		shark_res.m[8] = 0;
+		shark_res.m[9] = 0;
+		shark_res.m[10] = scale_fact; 
+
+		shark_direction = Ry(M_PI/2 + ticker);
+		shark_res = Mult(shark_res, shark_direction);
+
+		glUseProgram(program_shark);
+		glUniformMatrix4fv(glGetUniformLocation(program_shark, "view"), 1, GL_TRUE, total.m);
+		glUniformMatrix4fv(glGetUniformLocation(program_shark, "sphereMatrix"), 1, GL_TRUE, shark_res.m);
+		DrawModel(shark, program_shark, "inPosition", "inNormal", "inTexCoord");
+	}
+}
+
 void draw_fish(mat4 camMatrix, vec3 cameraPos, vec3 cameraFront, vec3 cameraUp) 
 {
-	mat4 fish_scale, fish_res, fish_transform, mr4, fish_direction;
+	mat4 fish_scale, fish_res, fish_transform, fish_direction;
 	float scale_fact = 0.009f;
 
 	GLfloat Rx_init = cameraPos.x + cameraFront.x + cameraUp.x;
@@ -160,7 +217,7 @@ Model *GenerateTerrain(TextureData *tex)
 		{
 			// Vertex array. You need to scale this properly
 			vertexArray[(x + z * tex->width) * 3 + 0] = scaling_factor * x / 1.0;
-			vertexArray[(x + z * tex->width) * 3 + 1] = scaling_factor * tex->imageData[(x + z * tex->width) * (tex->bpp / 8)] / 20.0;
+			vertexArray[(x + z * tex->width) * 3 + 1] = scaling_factor * tex->imageData[(x + z * tex->width) * (tex->bpp / 8)] / 60.0;
 			vertexArray[(x + z * tex->width) * 3 + 2] = scaling_factor * z / 1.0;
 			// Texture coordinates. You may want to scale them.
 			texCoordArray[(x + z * tex->width) * 2 + 0] = x; // (float)x / tex->width;

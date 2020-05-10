@@ -11,9 +11,11 @@
 
 void init_terrain(mat4 projectionMatrix);
 void draw_terrain(vec3 cameraPos, mat4 total);
+void draw_shark(GLfloat t, mat4 total);
 
 void draw_fish(mat4 camMatrix, vec3 cameraPos, vec3 cameraFront, vec3 cameraUp);
 float getHeight(float x, float z);
 Model *GenerateTerrain(TextureData *tex);
+Model* return_tm();
 float getVertexHeight(Model *model, int x, int z, int texWidth);
 float barryCentric(vec3 p1, vec3 p2, vec3 p3, float xpos, float zpos);

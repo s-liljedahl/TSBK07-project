@@ -44,8 +44,6 @@ void display(void)
 
 	printError("pre display");
 
-	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
-
 	camMatrix = lookAtv(cameraPos, VectorAdd(cameraPos, cameraFront), cameraUp);
 	modelView = T(0.0f, 5.0f, 0.0f);
 	total = Mult(camMatrix, modelView);
@@ -63,6 +61,10 @@ void display(void)
 	
 	// terrain
 	draw_terrain(cameraPos, total);
+
+	//shark
+	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
+	draw_shark(t, total);
 
 	//fish
 	draw_fish(camMatrix, cameraPos, cameraFront, cameraUp);
