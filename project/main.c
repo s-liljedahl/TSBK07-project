@@ -87,6 +87,8 @@ void init(void)
 	printError("init shader");
 	init_ship(projectionMatrix);
 	printError("init ship");
+	init_grass(projectionMatrix);
+	printError("init grass");
 	init_skybox();
 	printError("init skybox");
 
@@ -122,6 +124,10 @@ void display(void)
 	// ship
 	draw_ship(total, cameraPos, t);
 	printError("display ship");
+	
+	// grass
+	draw_grass(total, cameraPos, t);
+	printError("display grass");
 	
 	// terrain
 	draw_terrain(cameraPos, total, t);
