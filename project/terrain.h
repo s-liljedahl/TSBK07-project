@@ -16,8 +16,8 @@ void init_grass(mat4 projectionMatrix);
 void draw_terrain(vec3 cameraPos, mat4 total, GLfloat time);
 void draw_ship(mat4 total, vec3 cameraPos, GLfloat time);
 void draw_grass(mat4 total, vec3 cameraPos, GLfloat time);
-void draw_shark(GLfloat t, mat4 total);
-void draw_fish(mat4 camMatrix, vec3 cameraPos, vec3 cameraFront, vec3 cameraUp);
+void draw_shark(GLfloat t, mat4 total, vec3 cameraPos);
+void draw_fish(mat4 camMatrix, vec3 cameraPos, vec3 cameraFront, vec3 cameraUp, GLfloat time);
 
 Model *GenerateTerrain(TextureData *tex);
 Model* return_tm();
