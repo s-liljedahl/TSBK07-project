@@ -18,6 +18,7 @@ GLuint program, program_fish, program_shark, program_ship, program_grass;
 Model *tm, *fish_player, *shark, *ship, *grass;
 GLuint tex1;
 TextureData ttex; // terrain
+vec3 model_array[] = {}; 
 
 void init_terrain(mat4 projectionMatrix)
 {
@@ -100,6 +101,7 @@ void draw_ship(mat4 total, vec3 cameraPos, GLfloat time)
 {
 	float scale_fact = 0.02f;
 	vec3 pos = {70.0f, getHeight(70.0f, 120.0f) + 1.0f, 120.0f};
+	ship_pos = pos;
 	mat4 transform = T(pos.x, pos.y, pos.z);
 	mat4 scale = S(scale_fact, scale_fact,scale_fact);
 	mat4 res = Mult(total, Mult(transform, scale));
@@ -191,6 +193,9 @@ void draw_fish(mat4 camMatrix, vec3 cameraPos, vec3 cameraFront, vec3 cameraUp)
 	GLfloat Rx_init = cameraPos.x + cameraFront.x + cameraUp.x;
 	GLfloat Ry_init = cameraPos.y + cameraFront.y;
 	GLfloat Rz_init = cameraPos.z + cameraFront.z + cameraUp.z;
+
+	vec3 pos = {Rx_init, Ry_init, Rz_init};
+	fish_pos = pos;
 
 	fish_transform = T(Rx_init, Ry_init, Rz_init);
 	fish_scale = S(scale_fact, scale_fact,scale_fact);

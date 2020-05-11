@@ -108,3 +108,27 @@ void SpecialKeyHandler(int key)
 		}
 	}
 }
+
+void checkCollision(vec3 obj_pos, vec3 fish_pos) // AABB - AABB collision
+{
+	float pos_dx = obj_pos.x + 15.0f - fish_pos.x;
+	float neg_dx = obj_pos.x - 10.0f - fish_pos.x;
+	float dy = obj_pos.y + 3.0f - fish_pos.y;
+	float dz = obj_pos.z - fish_pos.z;
+
+	float distance_neg = sqrt(neg_dx*neg_dx + dy*dy + dz*dz);
+	float distance_pos = sqrt(pos_dx*pos_dx + dy*dy + dz*dz);
+
+	// if (distance <= 10.0f) {
+	// 	return true;
+	// }
+
+	if (distance_pos <= 15.0f) {
+		cameraPos.y = cameraPos.y + 5.0f;
+		printf("%s", "collision");
+	}
+	else if (distance_neg <= 15.0f){
+		cameraPos.y = cameraPos.y + 5.0f;
+		printf("%s", "collision");
+	}
+} 

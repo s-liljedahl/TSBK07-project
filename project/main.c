@@ -85,6 +85,9 @@ void display(void)
 	draw_terrain(cameraPos, total, t);
 	printError("display terrain");
 
+	//check collision 
+	checkCollision(ship_pos, fish_pos);
+
 	glutSwapBuffers();
 }
 
