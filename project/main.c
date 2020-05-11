@@ -75,11 +75,12 @@ void display(void)
 	printError("display grass");
 	
 	//shark
-	draw_shark(t, total);
+	draw_shark(t, total, cameraPos);
 	printError("display shark");
 	
 	//fish
-	draw_fish(camMatrix, cameraPos, cameraFront, cameraUp);
+	draw_fish(camMatrix, cameraPos, cameraFront, cameraUp, t);
+	printError("display fish");
 	
 	// terrain
 	draw_terrain(cameraPos, total, t);
