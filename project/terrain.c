@@ -181,6 +181,7 @@ void draw_shark(GLfloat t, mat4 total, vec3 cameraPos)
 
 		glUseProgram(program_shark);
 		glUniform1f(glGetUniformLocation(program_shark, "visibility"), visibility);
+		glUniform1i(glGetUniformLocation(program_shark, "sharkID"), i);
 		glUniformMatrix4fv(glGetUniformLocation(program_shark, "view"), 1, GL_TRUE, total.m);
 		glUniformMatrix4fv(glGetUniformLocation(program_shark, "sphereMatrix"), 1, GL_TRUE, shark_res.m);
 		DrawModel(shark, program_shark, "inPosition", "inNormal", "inTexCoord");
