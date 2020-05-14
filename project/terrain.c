@@ -194,7 +194,7 @@ void draw_fish(mat4 camMatrix, vec3 cameraPos, vec3 cameraFront, vec3 cameraUp, 
 	float scale_fact = 0.009f;
 
 	GLfloat Rx_init = cameraPos.x + cameraFront.x + cameraUp.x;
-	GLfloat Ry_init = cameraPos.y + cameraFront.y + (sin(time/1000)*0.01);
+	GLfloat Ry_init = cameraPos.y + cameraFront.y + (sin(time/1000)*0.02);
 	GLfloat Rz_init = cameraPos.z + cameraFront.z + cameraUp.z;
 
 	fish_transform = T(Rx_init, Ry_init, Rz_init);
@@ -214,7 +214,8 @@ void draw_fish(mat4 camMatrix, vec3 cameraPos, vec3 cameraFront, vec3 cameraUp, 
 	fish_res.m[10] = scale_fact;
 
 	fish_direction = Mult(Rz(-M_PI/2), Ry(-M_PI/2));
-	fish_res = Mult(fish_res, fish_direction); 
+	mat4 fish_rotation = Rz(sin(time/500)*0.1);
+	fish_res = Mult(fish_res, Mult(fish_direction, fish_rotation)); 
 
 	glUseProgram(program_fish);
 	glUniformMatrix4fv(glGetUniformLocation(program_fish, "fishMatrix"), 1, GL_TRUE, fish_res.m);
