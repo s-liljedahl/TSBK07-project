@@ -133,9 +133,10 @@ void draw_grass(mat4 total, vec3 cameraPos, GLfloat time)
 
 void draw_shark(GLfloat t, mat4 total, vec3 cameraPos)
 {
-	int radius = 4;
+	int radius = 5;
 	mat4 shark_transform, shark_scale, shark_res, shark_direction, shark_pos;
 	float scale_fact = 0.2f;
+	float shark_height = 0.3f;
 	GLfloat ticker = (t / 3500);
 
 	for (int i = 0; i < 2; i++) 
@@ -143,7 +144,7 @@ void draw_shark(GLfloat t, mat4 total, vec3 cameraPos)
 		//Initiera position
 		GLfloat x = (sin(i) * radius) + 100.0f;
 		GLfloat z = (cos(i) * radius) + 100.0f;
-		GLfloat y = getHeight(x, z) + 2.0f;
+		GLfloat y = getHeight(x, z) + 1.0f + i*shark_height;
 
 		shark_pos = T(x, y, z);
 
@@ -152,7 +153,7 @@ void draw_shark(GLfloat t, mat4 total, vec3 cameraPos)
 		GLfloat shark_posz = cos(ticker) * radius;
 		GLfloat shark_posy = getHeight(shark_posx, shark_posz) + (sin(ticker + i*M_PI/2)*0.1) + 2.0f;
 
-		shark_transform = T(shark_posx, shark_posy, shark_posz);
+		shark_transform = T(shark_posx, y, shark_posz);
 
 		//Skala hajen
 		shark_scale = S(scale_fact, scale_fact, scale_fact);
