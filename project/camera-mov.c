@@ -80,7 +80,7 @@ bool checkCollision(vec3 obj_pos, vec3 fish_pos)
 	float distance_z = sqrt(dz*dz);
 
 	float rad_fish_x = 6.0f;
-	float rad_fish_y = 10.0f;
+	float rad_fish_y = 8.5f;
 	float rad_fish_z = 20.0f;
 
 	if (distance_x <= rad_fish_x && distance_y <= rad_fish_y 
