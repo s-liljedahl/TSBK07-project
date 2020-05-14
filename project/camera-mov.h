@@ -24,4 +24,4 @@ vec3 direction;
 void mouse(int xpos, int ypos);
 void SpecialKeyHandler(int key);
 float radians(float degree);
-void checkCollision(vec3 obj_pos, vec3 fish_pos);
+bool checkCollision(vec3 obj_pos, vec3 fish_pos);

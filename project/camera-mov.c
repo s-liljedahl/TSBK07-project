@@ -68,29 +68,69 @@ void mouse(int xpos, int ypos)
     cameraFront = Normalize(direction);
 }
 
+bool checkCollision(vec3 obj_pos, vec3 fish_pos) 
+{
+	
+	float dx = obj_pos.x - fish_pos.x;
+	float dy = obj_pos.y - fish_pos.y;
+	float dz = obj_pos.z - fish_pos.z;
+
+	float distance_x = sqrt(dx*dx);
+	float distance_y = sqrt(dy*dy);
+	float distance_z = sqrt(dz*dz);
+
+	float rad_fish_x = 6.0f;
+	float rad_fish_y = 10.0f;
+	float rad_fish_z = 20.0f;
+
+	if (distance_x <= rad_fish_x && distance_y <= rad_fish_y 
+		&& distance_z <= rad_fish_z) {
+		return true;
+	}
+	else {
+		return false;
+	}
+} 
+
 void SpecialKeyHandler(int key)
 {
 	const float cameraSpeed = 1.0f;
 	const float height_y = 7.5f;
 	GLfloat cam_y = getHeight(cameraPos.x + cameraFront.x, cameraPos.z + cameraFront.z);
-	vec3 zero_y = {cameraPos.x+ cameraFront.x,cam_y + height_y, cameraPos.z+ cameraFront.z};
+	vec3 zero_y = {cameraPos.x+ cameraFront.x, cam_y + height_y, cameraPos.z+ cameraFront.z};
+	vec3 zero_forward = {0.0f, cameraPos.y + cameraFront.y, 0.0f};
+	vec3 ship_pos = return_ship_pos();
+	vec3 fish_pos = return_fish_pos(cameraPos, cameraFront, cameraUp);
 
 	if (key == GLUT_KEY_RIGHT)
+	{
+		if (checkCollision(ship_pos, fish_pos)) {
+			return;
+		}
 		if (cameraPos.y >= cam_y + height_y) {
     		cameraPos = VectorAdd(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
 		}
 		else {
 			cameraPos = VectorAdd(zero_y, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
 		}
+	}
 	else if (key == GLUT_KEY_LEFT)
+	{
+		if (checkCollision(ship_pos, fish_pos)) {
+			return;
+		}
 		if (cameraPos.y >= cam_y + height_y) {
 			cameraPos = VectorSub(cameraPos, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
 		}
 		else {
 			cameraPos = VectorSub(zero_y, ScalarMult(Normalize(CrossProduct(cameraFront, cameraUp)), cameraSpeed));
 		}
+	}
 	else if (key == GLUT_KEY_UP)
 	{
+		if (checkCollision(ship_pos, fish_pos)) {
+			return;
+		}
 		if (cameraPos.y >= cam_y + height_y) {
 			cameraPos = VectorAdd(cameraPos, ScalarMult(cameraFront, cameraSpeed));
 		}
@@ -108,27 +148,3 @@ void SpecialKeyHandler(int key)
 		}
 	}
 }
-
-void checkCollision(vec3 obj_pos, vec3 fish_pos) // AABB - AABB collision
-{
-	float pos_dx = obj_pos.x + 15.0f - fish_pos.x;
-	float neg_dx = obj_pos.x - 10.0f - fish_pos.x;
-	float dy = obj_pos.y + 3.0f - fish_pos.y;
-	float dz = obj_pos.z - fish_pos.z;
-
-	float distance_neg = sqrt(neg_dx*neg_dx + dy*dy + dz*dz);
-	float distance_pos = sqrt(pos_dx*pos_dx + dy*dy + dz*dz);
-
-	// if (distance <= 10.0f) {
-	// 	return true;
-	// }
-
-	if (distance_pos <= 15.0f) {
-		cameraPos.y = cameraPos.y + 5.0f;
-		printf("%s", "collision");
-	}
-	else if (distance_neg <= 15.0f){
-		cameraPos.y = cameraPos.y + 5.0f;
-		printf("%s", "collision");
-	}
-} 
