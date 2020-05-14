@@ -45,15 +45,14 @@ void init_terrain(mat4 projectionMatrix)
 
 	// Load shark and compile shader
 	shark = LoadModelPlus("resources/shark.obj");
-	program_shark = loadShaders("shaders/sphere.vert", "shaders/sphere-6.frag");
+	program_shark = loadShaders("shaders/sphere.vert", "shaders/shark.frag");
 	glUniformMatrix4fv(glGetUniformLocation(program_shark, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	printError("init shark");
 }
 
 void init_ship(mat4 projectionMatrix) {
 	// Load ship and compile shader
-	ship = LoadModelPlus("resources/Submarine.obj");
-	printError("init ship 1");
+	ship = LoadModelPlus("resources/submarine.obj");
 	program_ship = loadShaders("shaders/ship.vert", "shaders/ship.frag");
 	glUseProgram(program_ship);
 	printError("init ship 2");
@@ -98,8 +97,8 @@ float getFogFactor(vec3 p1, vec3 p2)
 
 void draw_ship(mat4 total, vec3 cameraPos, GLfloat time) 
 {
-	float scale_fact = 0.02f;
-	vec3 pos = {70.0f, getHeight(70.0f, 120.0f) + 1.0f, 120.0f};
+	float scale_fact = 2.0f;
+	vec3 pos = {70.0f, getHeight(70.0f, 120.0f) + 1.5f, 120.0f};
 	mat4 transform = T(pos.x, pos.y, pos.z);
 	mat4 scale = S(scale_fact, scale_fact,scale_fact);
 	mat4 res = Mult(total, Mult(transform, scale));
@@ -109,6 +108,7 @@ void draw_ship(mat4 total, vec3 cameraPos, GLfloat time)
 	glUseProgram(program_ship);
 	glUniform1f(glGetUniformLocation(program_ship, "t"), time);
 	glUniform1f(glGetUniformLocation(program_ship, "visibility"), visibility);
+	glUniform3fv(glGetUniformLocation(program_ship, "cameraPos"), 1, &cameraPos); // Fog effect
 	glUniformMatrix4fv(glGetUniformLocation(program_ship, "shipMatrix"), 1, GL_TRUE, res.m);
 	DrawModel(ship, program_ship, "inPosition", "inNormal", "inTexCoord");
 }
@@ -131,11 +131,12 @@ void draw_grass(mat4 total, vec3 cameraPos, GLfloat time)
 	DrawModel(grass, program_grass, "inPosition", "inNormal", "inTexCoord");
 }
 
-void draw_shark(GLfloat t, mat4 total)
+void draw_shark(GLfloat t, mat4 total, vec3 cameraPos)
 {
-	int radius = 4;
+	int radius = 5;
 	mat4 shark_transform, shark_scale, shark_res, shark_direction, shark_pos;
 	float scale_fact = 0.2f;
+	float shark_height = 0.3f;
 	GLfloat ticker = (t / 3500);
 
 	for (int i = 0; i < 2; i++) 
@@ -143,16 +144,16 @@ void draw_shark(GLfloat t, mat4 total)
 		//Initiera position
 		GLfloat x = (sin(i) * radius) + 100.0f;
 		GLfloat z = (cos(i) * radius) + 100.0f;
-		GLfloat y = getHeight(x, z) + 2.0f;
+		GLfloat y = getHeight(x, z) + 1.0f + i*shark_height;
 
 		shark_pos = T(x, y, z);
 
 		//Initiera tid
 		GLfloat shark_posx = sin(ticker) * radius;
 		GLfloat shark_posz = cos(ticker) * radius;
-		GLfloat shark_posy = getHeight(shark_posx, shark_posz) + 2.0f;
+		GLfloat shark_posy = getHeight(shark_posx, shark_posz) + (sin(ticker + i*M_PI/2)*0.1) + 2.0f;
 
-		shark_transform = T(shark_posx, shark_posy, shark_posz);
+		shark_transform = T(shark_posx, y, shark_posz);
 
 		//Skala hajen
 		shark_scale = S(scale_fact, scale_fact, scale_fact);
@@ -175,24 +176,29 @@ void draw_shark(GLfloat t, mat4 total)
 		shark_direction = Ry(M_PI/2 + ticker);
 		shark_res = Mult(shark_res, shark_direction);
 
+		vec3 pos = {x, y, z};
+		GLfloat visibility = getFogFactor(cameraPos, pos);
+
 		glUseProgram(program_shark);
+		glUniform1f(glGetUniformLocation(program_shark, "visibility"), visibility);
+		glUniform1i(glGetUniformLocation(program_shark, "sharkID"), i);
 		glUniformMatrix4fv(glGetUniformLocation(program_shark, "view"), 1, GL_TRUE, total.m);
 		glUniformMatrix4fv(glGetUniformLocation(program_shark, "sphereMatrix"), 1, GL_TRUE, shark_res.m);
 		DrawModel(shark, program_shark, "inPosition", "inNormal", "inTexCoord");
 	}
 }
 
-void draw_fish(mat4 camMatrix, vec3 cameraPos, vec3 cameraFront, vec3 cameraUp) 
+void draw_fish(mat4 camMatrix, vec3 cameraPos, vec3 cameraFront, vec3 cameraUp, GLfloat time) 
 {
 	mat4 fish_scale, fish_res, fish_transform, fish_direction;
 	float scale_fact = 0.009f;
 
 	GLfloat Rx_init = cameraPos.x + cameraFront.x + cameraUp.x;
-	GLfloat Ry_init = cameraPos.y + cameraFront.y;
+	GLfloat Ry_init = cameraPos.y + cameraFront.y + (sin(time/1000)*0.01);
 	GLfloat Rz_init = cameraPos.z + cameraFront.z + cameraUp.z;
 
 	fish_transform = T(Rx_init, Ry_init, Rz_init);
-	fish_scale = S(scale_fact, scale_fact,scale_fact);
+	fish_scale = S(scale_fact, scale_fact, scale_fact);
 	fish_res = Mult(camMatrix, Mult(fish_transform, fish_scale));
 
 	fish_res.m[0] = scale_fact;

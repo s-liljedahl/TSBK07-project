@@ -9,5 +9,5 @@
 #include "loadobj.h"
 #include "LoadTGA.h"
 
-void init_skybox();
-void draw_skybox(mat4 projectionMatrix, mat4 cameraMatrix, mat4 transformMatrix);
+void skybox_init(mat4 projMatrix);
+void skybox_display(mat4 cameraMatrix);
