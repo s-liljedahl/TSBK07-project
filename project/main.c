@@ -19,7 +19,7 @@ mat4 projectionMatrix;
 void init(void)
 {
 	// GL inits
-	glClearColor(0.2,0.2,0.5,0);
+	glClearColor(0.2, 0.6353, 0.9255, 1.0);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	printError("GL inits");
@@ -34,7 +34,7 @@ void init(void)
 	printError("init ship");
 	init_grass(projectionMatrix);
 	printError("init grass");
-	init_skybox();
+	skybox_init(projectionMatrix);
 	printError("init skybox");
 
 }
@@ -52,18 +52,12 @@ void display(void)
 	modelView = T(0.0f, 5.0f, 0.0f);
 	total = Mult(camMatrix, modelView);
 
-	mat4 skybox_s = S(10.0f, 10.0f, 10.0f);
-	mat4 skybox_t = T(cameraPos.x, - 3.0f, cameraPos.z);
-	mat4 skybox_res = Mult(skybox_t, skybox_s);
-
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
 	// skybox
-	glDisable(GL_DEPTH_TEST);
-	draw_skybox(projectionMatrix, camMatrix, skybox_res);
-	glEnable(GL_DEPTH_TEST);
+	skybox_display(camMatrix);
 	printError("display skybox");
 
 	// ship
