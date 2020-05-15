@@ -121,19 +121,22 @@ void draw_ship(mat4 total, vec3 cameraPos, GLfloat time)
 
 void draw_grass(mat4 total, vec3 cameraPos, GLfloat time) 
 {
-	float scale_fact = 1.0f;
-	vec3 pos = {120.0f, getHeight(100.0f, 100.0f) + 1.5f, 100.0f};
-	mat4 transform = T(pos.x, pos.y, pos.z);
+	float scale_fact = 0.9f;
 	mat4 scale = S(scale_fact, scale_fact,scale_fact);
-	mat4 res = Mult(transform, scale);
 
 	// GLfloat view = getFogFactor(cameraPos, pos);
-
 	glUseProgram(program_grass);
-	// glUniform1f(glGetUniformLocation(program_grass, "t"), time);
-	glUniformMatrix4fv(glGetUniformLocation(program_grass, "view"), 1, GL_TRUE, total.m);
-	glUniformMatrix4fv(glGetUniformLocation(program_grass, "sphereMatrix"), 1, GL_TRUE, res.m);
-	DrawModel(grass, program_grass, "inPosition", "inNormal", "inTexCoord");
+
+	for (int i = 0; i < 3; i++) 
+	{
+		vec3 pos = {120.0f + i*3, getHeight(100.0f, 100.0f) + 1.6f + sin(time/1000)/2, 100.0f};
+		mat4 transform = T(pos.x, pos.y, pos.z);
+		mat4 res = Mult(transform, scale);
+		// glUniform1f(glGetUniformLocation(program_grass, "t"), time);
+		glUniformMatrix4fv(glGetUniformLocation(program_grass, "view"), 1, GL_TRUE, total.m);
+		glUniformMatrix4fv(glGetUniformLocation(program_grass, "sphereMatrix"), 1, GL_TRUE, res.m);
+		DrawModel(grass, program_grass, "inPosition", "inNormal", "inTexCoord");
+	}
 }
 
 void draw_shark(GLfloat t, mat4 total, vec3 cameraPos)
