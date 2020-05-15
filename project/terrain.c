@@ -244,21 +244,15 @@ void draw_fish(mat4 camMatrix, vec3 cameraPos, vec3 cameraFront, vec3 cameraUp, 
 float getHeight(float x, float z)
 {
 	int texWidth = ttex.width;
-	// printf("input %f %f\n", x, z);
-	// antal grid quares ?
 	float quadSize = texWidth / ((float)texWidth - 1.0f);
-	// int quadSize = 1;
-	// vilken quad/gridsquare
 	int quadX = (int)floor(x / quadSize);
 	int quadZ = (int)floor(z / quadSize);
-	// printf("Quad numbers %d %d\n", quadX, quadZ);
 	int intX = (int)x;
 	int intZ = (int)z;
-	// printf("int %d %d\n", intX, intZ);
-	// where on the square/quad
+
 	float deltaX = (float)(x - intX);
 	float deltaZ = (float)(z - intZ);
-	// printf("Delta %f %f\n", deltaX, deltaZ);
+
 	vec3 a, b, c;
 	float h1, h2, h3;
 	// if outside bounds
@@ -288,7 +282,6 @@ float getHeight(float x, float z)
 		h1 = getVertexHeight(tm, intX + 1, intZ, texWidth);
 		h2 = getVertexHeight(tm, intX + 1, intZ + 1, texWidth);
 		h3 = getVertexHeight(tm, intX, intZ + 1, texWidth);
-		// printf("H2 %f %f %f\n", h1, h2, h3);
 
 		vec3 a = {1, h1, 0};
 		vec3 b = {1, h2, 1};
