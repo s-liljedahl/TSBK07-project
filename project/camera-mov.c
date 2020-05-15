@@ -25,7 +25,7 @@ float lastY = 775.0f / 2;
 // // vec3 direction;
 vec3 cameraFront = {0.0f, 0.0f, -1.0f};
 vec3 cameraUp = {0.0f, 1.0f,  0.0f};
-vec3 cameraPos = {15.0f, 7.5f,  15.0f};
+vec3 cameraPos = {15.0f, 8.0f,  15.0f};
 vec3 direction;
 
 TextureData ttex;
@@ -94,7 +94,7 @@ bool checkCollision(vec3 obj_pos, vec3 fish_pos)
 
 void SpecialKeyHandler(int key)
 {
-	const float cameraSpeed = 1.0f;
+	const float cameraSpeed = 0.7f;
 	const float height_y = 7.5f;
 	GLfloat cam_y = getHeight(cameraPos.x + cameraFront.x, cameraPos.z + cameraFront.z);
 	vec3 zero_y = {cameraPos.x+ cameraFront.x, cam_y + height_y, cameraPos.z+ cameraFront.z};
