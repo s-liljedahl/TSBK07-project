@@ -25,7 +25,7 @@ float lastY = 775.0f / 2;
 // // vec3 direction;
 vec3 cameraFront = {0.0f, 0.0f, -1.0f};
 vec3 cameraUp = {0.0f, 1.0f,  0.0f};
-vec3 cameraPos = {90.0f, 7.5f,  90.0f};
+vec3 cameraPos = {15.0f, 7.5f,  15.0f};
 vec3 direction;
 
 TextureData ttex;

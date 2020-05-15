@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
 	glutInitContextVersion(3, 2);
-	glutInitWindowSize (600, 600);
+	glutInitWindowSize (900, 900);
 	glutCreateWindow ("TSBK07 Project");
 	glutDisplayFunc(display);
 	init ();
