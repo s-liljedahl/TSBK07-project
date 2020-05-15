@@ -32,8 +32,8 @@ void init(void)
 	printError("init shader");
 	init_ship(projectionMatrix);
 	printError("init ship");
-	init_grass(projectionMatrix);
-	printError("init grass");
+	init_seahorse(projectionMatrix);
+	printError("init seahorse");
 	skybox_init(projectionMatrix);
 	printError("init skybox");
 
@@ -64,9 +64,9 @@ void display(void)
 	draw_ship(total, cameraPos, t);
 	printError("display ship");
 	
-	// grass
-	draw_grass(total, cameraPos, t);
-	printError("display grass");
+	// seahorse
+	draw_seahorse(total, cameraPos, t);
+	printError("display seahorse");
 	
 	//shark
 	draw_shark(t, total, cameraPos);

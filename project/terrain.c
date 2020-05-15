@@ -14,8 +14,8 @@
 float scaling_factor = 1.0f;
 
 GLfloat *vertexArray;
-GLuint program, program_fish, program_shark, program_ship, program_grass;
-Model *tm, *fish_player, *shark, *ship, *grass;
+GLuint program, program_fish, program_shark, program_ship, program_seahorse;
+Model *tm, *fish_player, *shark, *ship, *seahorse;
 GLuint tex1;
 TextureData ttex; // terrain
 vec3 model_array[] = {}; 
@@ -56,19 +56,14 @@ void init_ship(mat4 projectionMatrix) {
 	ship = LoadModelPlus("resources/submarine.obj");
 	program_ship = loadShaders("shaders/ship.vert", "shaders/ship.frag");
 	glUseProgram(program_ship);
-	printError("init ship 2");
 	glUniformMatrix4fv(glGetUniformLocation(program_ship, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
-	printError("init ship 3");
 }
 
-void init_grass(mat4 projectionMatrix) {
-	grass = LoadModelPlus("resources/seahorse.obj");
-	printError("init grass 1");
-	program_grass = loadShaders("shaders/sphere.vert", "shaders/shark.frag");
-	glUseProgram(program_grass);
-	printError("init grass 2");
-	glUniformMatrix4fv(glGetUniformLocation(program_grass, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
-	printError("init grass 3");
+void init_seahorse(mat4 projectionMatrix) {
+	seahorse = LoadModelPlus("resources/seahorse.obj");
+	program_seahorse = loadShaders("shaders/sphere.vert", "shaders/shark.frag");
+	glUseProgram(program_seahorse);
+	glUniformMatrix4fv(glGetUniformLocation(program_seahorse, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 }
 
 void draw_terrain(vec3 cameraPos, mat4 total, GLfloat time)
@@ -119,7 +114,7 @@ void draw_ship(mat4 total, vec3 cameraPos, GLfloat time)
 	DrawModel(ship, program_ship, "inPosition", "inNormal", "inTexCoord");
 }
 
-void draw_grass(mat4 total, vec3 cameraPos, GLfloat time) 
+void draw_seahorse(mat4 total, vec3 cameraPos, GLfloat time) 
 {
 	float scale_fact = 0.7f;
 	vec3 pos = {150.0f, getHeight(150.0f, 150.0f) + 1.5f, 150.0f};
@@ -127,20 +122,20 @@ void draw_grass(mat4 total, vec3 cameraPos, GLfloat time)
 	mat4 scale = S(scale_fact, scale_fact,scale_fact);
 
 	// GLfloat view = getFogFactor(cameraPos, pos);
-	glUseProgram(program_grass);
+	glUseProgram(program_seahorse);
 
 	for (int i = 0; i < 3; i++) 
 	{
 		vec3 pos = {120.0f + i*3, getHeight(100.0f, 100.0f) + 1.6f + sin(time/1000)/2, 100.0f};
 		mat4 transform = T(pos.x, pos.y, pos.z);
 		mat4 res = Mult(transform, scale);
-		// glUniform1f(glGetUniformLocation(program_grass, "t"), time);
+		// glUniform1f(glGetUniformLocation(program_seahorse, "t"), time);
 		GLfloat visibility = getFogFactor(cameraPos, pos);
-		glUniform1f(glGetUniformLocation(program_grass, "visibility"), visibility);
-		glUniform1i(glGetUniformLocation(program_grass, "sharkID"), i);
-		glUniformMatrix4fv(glGetUniformLocation(program_grass, "view"), 1, GL_TRUE, total.m);
-		glUniformMatrix4fv(glGetUniformLocation(program_grass, "sphereMatrix"), 1, GL_TRUE, res.m);
-		DrawModel(grass, program_grass, "inPosition", "inNormal", "inTexCoord");
+		glUniform1f(glGetUniformLocation(program_seahorse, "visibility"), visibility);
+		glUniform1i(glGetUniformLocation(program_seahorse, "sharkID"), i);
+		glUniformMatrix4fv(glGetUniformLocation(program_seahorse, "view"), 1, GL_TRUE, total.m);
+		glUniformMatrix4fv(glGetUniformLocation(program_seahorse, "sphereMatrix"), 1, GL_TRUE, res.m);
+		DrawModel(seahorse, program_seahorse, "inPosition", "inNormal", "inTexCoord");
 	}
 
 }
