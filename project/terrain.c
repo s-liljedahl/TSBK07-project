@@ -64,7 +64,7 @@ void init_ship(mat4 projectionMatrix) {
 void init_grass(mat4 projectionMatrix) {
 	grass = LoadModelPlus("resources/seahorse.obj");
 	printError("init grass 1");
-	program_grass = loadShaders("shaders/sphere.vert", "shaders/sphere.frag");
+	program_grass = loadShaders("shaders/sphere.vert", "shaders/shark.frag");
 	glUseProgram(program_grass);
 	printError("init grass 2");
 	glUniformMatrix4fv(glGetUniformLocation(program_grass, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
@@ -121,7 +121,9 @@ void draw_ship(mat4 total, vec3 cameraPos, GLfloat time)
 
 void draw_grass(mat4 total, vec3 cameraPos, GLfloat time) 
 {
-	float scale_fact = 0.9f;
+	float scale_fact = 0.7f;
+	vec3 pos = {150.0f, getHeight(150.0f, 150.0f) + 1.5f, 150.0f};
+	mat4 transform = T(pos.x, pos.y, pos.z);
 	mat4 scale = S(scale_fact, scale_fact,scale_fact);
 
 	// GLfloat view = getFogFactor(cameraPos, pos);
@@ -133,10 +135,14 @@ void draw_grass(mat4 total, vec3 cameraPos, GLfloat time)
 		mat4 transform = T(pos.x, pos.y, pos.z);
 		mat4 res = Mult(transform, scale);
 		// glUniform1f(glGetUniformLocation(program_grass, "t"), time);
+		GLfloat visibility = getFogFactor(cameraPos, pos);
+		glUniform1f(glGetUniformLocation(program_grass, "visibility"), visibility);
+		glUniform1i(glGetUniformLocation(program_grass, "sharkID"), i);
 		glUniformMatrix4fv(glGetUniformLocation(program_grass, "view"), 1, GL_TRUE, total.m);
 		glUniformMatrix4fv(glGetUniformLocation(program_grass, "sphereMatrix"), 1, GL_TRUE, res.m);
 		DrawModel(grass, program_grass, "inPosition", "inNormal", "inTexCoord");
 	}
+
 }
 
 void draw_shark(GLfloat t, mat4 total, vec3 cameraPos)
