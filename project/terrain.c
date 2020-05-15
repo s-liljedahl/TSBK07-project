@@ -18,6 +18,7 @@ GLuint program, program_fish, program_shark, program_ship, program_grass;
 Model *tm, *fish_player, *shark, *ship, *grass;
 GLuint tex1;
 TextureData ttex; // terrain
+vec3 model_array[] = {}; 
 
 void init_terrain(mat4 projectionMatrix)
 {
@@ -95,10 +96,15 @@ float getFogFactor(vec3 p1, vec3 p2)
     return 1 - (FogMax - d) / (FogMax - FogMin);
 }
 
+vec3 return_ship_pos(){
+	vec3 pos = {70.0f, getHeight(70.0f, 120.0f) + 1.5f, 120.0f};
+	return pos;
+}
+
 void draw_ship(mat4 total, vec3 cameraPos, GLfloat time) 
 {
 	float scale_fact = 2.0f;
-	vec3 pos = {70.0f, getHeight(70.0f, 120.0f) + 1.5f, 120.0f};
+	vec3 pos = return_ship_pos();
 	mat4 transform = T(pos.x, pos.y, pos.z);
 	mat4 scale = S(scale_fact, scale_fact,scale_fact);
 	mat4 res = Mult(total, Mult(transform, scale));
@@ -112,7 +118,6 @@ void draw_ship(mat4 total, vec3 cameraPos, GLfloat time)
 	glUniformMatrix4fv(glGetUniformLocation(program_ship, "shipMatrix"), 1, GL_TRUE, res.m);
 	DrawModel(ship, program_ship, "inPosition", "inNormal", "inTexCoord");
 }
-
 
 void draw_grass(mat4 total, vec3 cameraPos, GLfloat time) 
 {
@@ -188,6 +193,14 @@ void draw_shark(GLfloat t, mat4 total, vec3 cameraPos)
 	}
 }
 
+vec3 return_fish_pos(vec3 cameraPos, vec3 cameraFront, vec3 cameraUp){
+	GLfloat Rx_init = cameraPos.x;
+	GLfloat Ry_init = cameraPos.y + cameraFront.y;
+	GLfloat Rz_init = cameraPos.z + cameraFront.z + cameraUp.z;
+
+	vec3 pos = {Rx_init, Ry_init, Rz_init};
+	return pos;
+}
 void draw_fish(mat4 camMatrix, vec3 cameraPos, vec3 cameraFront, vec3 cameraUp, GLfloat time) 
 {
 	mat4 fish_scale, fish_res, fish_transform, fish_direction;
@@ -196,6 +209,8 @@ void draw_fish(mat4 camMatrix, vec3 cameraPos, vec3 cameraFront, vec3 cameraUp, 
 	GLfloat Rx_init = cameraPos.x + cameraFront.x + cameraUp.x;
 	GLfloat Ry_init = cameraPos.y + cameraFront.y + (sin(time/1000)*0.02);
 	GLfloat Rz_init = cameraPos.z + cameraFront.z + cameraUp.z;
+
+	vec3 pos = {Rx_init, Ry_init, Rz_init};
 
 	fish_transform = T(Rx_init, Ry_init, Rz_init);
 	fish_scale = S(scale_fact, scale_fact, scale_fact);

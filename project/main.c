@@ -101,6 +101,7 @@ int main(int argc, char **argv)
 	glutTimerFunc(20, &timer, 0);
 	glutSpecialFunc(SpecialKeyHandler);
 	glutPassiveMotionFunc(mouse);
+	glutHideCursor();
 	glutMainLoop();
 	exit(0);
 }
