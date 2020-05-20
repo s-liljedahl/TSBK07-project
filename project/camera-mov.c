@@ -10,7 +10,7 @@
 #include "LoadTGA.h"
 
 #include "camera-mov.h"
-#include "terrain.h"
+#include "model-loader.h"
 
 #define pi 3.14
 

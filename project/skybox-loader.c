@@ -13,13 +13,9 @@
 
 #include "skybox-loader.h"
 
-GLuint program, texprogram;
-Model *model[4]; // teapotModel, *sphereModel, *torusModel, *cubeModel;
+GLuint program_sky;
 Model *box[6];
-int currentModelIndex = 0;
 
-// Globals
-// Data would normally be read from files
 GLfloat vertices[6][6 * 3] =
 	{
 		{
@@ -170,9 +166,9 @@ void skybox_init(mat4 projMatrix)
 	{
 		box[i] = LoadDataToModel(vertices[i], NULL, texcoord[i], NULL, indices[i], 4, 6);
 	}
-	texprogram = loadShaders("shaders/tex.vert", "shaders/tex.frag");
-	glUniformMatrix4fv(glGetUniformLocation(texprogram, "projMatrix"), 1, GL_TRUE, projMatrix.m);
-	glUniform1i(glGetUniformLocation(texprogram, "tex"), 1); // unit 1
+	program_sky = loadShaders("shaders/skybox.vert", "shaders/skybox.frag");
+	glUniformMatrix4fv(glGetUniformLocation(program_sky, "projMatrix"), 1, GL_TRUE, projMatrix.m);
+	glUniform1i(glGetUniformLocation(program_sky, "tex"), 1); // unit 1
 	glEnable(GL_DEPTH_TEST);
 	loadTextures();
 }
@@ -182,15 +178,15 @@ void skybox_display(mat4 cameraMatrix)
 	int i;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
-	glUseProgram(texprogram);
+	glUseProgram(program_sky);
 	cameraMatrix.m[3] = 0;
 	cameraMatrix.m[7] = 0;
 	cameraMatrix.m[11] = 0;
-	glUniformMatrix4fv(glGetUniformLocation(texprogram, "worldToViewMatrix"), 1, GL_TRUE, cameraMatrix.m);
+	glUniformMatrix4fv(glGetUniformLocation(program_sky, "worldToViewMatrix"), 1, GL_TRUE, cameraMatrix.m);
 	for (i = 0; i < 6; i++)
 	{
 		glBindTexture(GL_TEXTURE_2D, t[i].texID);
-		DrawModel(box[i], texprogram, "inPosition", NULL, "inTexCoord");
+		DrawModel(box[i], program_sky, "inPosition", NULL, "inTexCoord");
 	}
 	glEnable(GL_DEPTH_TEST);
 	glActiveTexture(GL_TEXTURE1);

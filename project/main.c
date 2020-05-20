@@ -12,7 +12,7 @@
 
 #include "skybox-loader.h"
 #include "camera-mov.h"
-#include "terrain.h"
+#include "model-loader.h"
 
 mat4 projectionMatrix;
 
@@ -27,16 +27,14 @@ void init(void)
 	projectionMatrix = frustum(-0.1, 0.1, -0.1, 0.1, 0.2, 500.0);
 
 	dumpInfo();
-
 	init_terrain(projectionMatrix);
 	printError("init shader");
 	init_ship(projectionMatrix);
 	printError("init ship");
-	init_grass(projectionMatrix);
+	init_seahorse(projectionMatrix);
 	printError("init grass");
 	skybox_init(projectionMatrix);
 	printError("init skybox");
-
 }
 
 void display(void)

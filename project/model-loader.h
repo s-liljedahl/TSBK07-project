@@ -11,7 +11,7 @@
 
 void init_terrain(mat4 projectionMatrix);
 void init_ship(mat4 projectionMatrix);
-void init_grass(mat4 projectionMatrix);
+void init_seahorse(mat4 projectionMatrix);
 
 void draw_terrain(vec3 cameraPos, mat4 total, GLfloat time);
 void draw_ship(mat4 total, vec3 cameraPos, GLfloat time);

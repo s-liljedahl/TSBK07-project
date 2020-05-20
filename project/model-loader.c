@@ -9,12 +9,17 @@
 #include "loadobj.h"
 #include "LoadTGA.h"
 
-#include "terrain.h"
+#include "model-loader.h"
 
+// constants
 float scaling_factor = 1.0f;
+vec4 skyColor = {0.2, 0.6353, 0.9255, 1.0};
+float FogMax = 100.0;
+float FogMin = 1.0;
+int terrain_height_control = 50;
 
 GLfloat *vertexArray;
-GLuint program, program_fish, program_shark, program_ship, program_grass;
+GLuint program, program_fish, program_shark, program_ship, program_1;
 Model *tm, *fish_player, *shark, *ship, *grass;
 GLuint tex1;
 TextureData ttex; // terrain
@@ -31,6 +36,7 @@ void init_terrain(mat4 projectionMatrix)
 	program = loadShaders("shaders/terrain.vert", "shaders/terrain.frag");
 	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(program, "tex"), 0); // Texture unit 0
+	glUniform4fv(glGetUniformLocation(program, "skyColor"), 1, &skyColor); // Fog effect
 	printError("init shader");
 
 	// Load terrain data
@@ -42,12 +48,14 @@ void init_terrain(mat4 projectionMatrix)
 	fish_player = LoadModelPlus("resources/fish.obj");
 	program_fish = loadShaders("shaders/fish.vert", "shaders/fish.frag");
 	glUniformMatrix4fv(glGetUniformLocation(program_fish, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+	glUniform4fv(glGetUniformLocation(program_fish, "skyColor"), 1, &skyColor); // Fog effect
 	printError("init fish");
 
 	// Load shark and compile shader
 	shark = LoadModelPlus("resources/shark.obj");
 	program_shark = loadShaders("shaders/sphere.vert", "shaders/shark.frag");
 	glUniformMatrix4fv(glGetUniformLocation(program_shark, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+	glUniform4fv(glGetUniformLocation(program_shark, "skyColor"), 1, &skyColor); // Fog effect
 	printError("init shark");
 }
 
@@ -58,17 +66,17 @@ void init_ship(mat4 projectionMatrix) {
 	glUseProgram(program_ship);
 	printError("init ship 2");
 	glUniformMatrix4fv(glGetUniformLocation(program_ship, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+	glUniform4fv(glGetUniformLocation(program_ship, "skyColor"), 1, &skyColor); // Fog effect
 	printError("init ship 3");
 }
 
-void init_grass(mat4 projectionMatrix) {
+void init_seahorse(mat4 projectionMatrix) {
 	grass = LoadModelPlus("resources/seahorse.obj");
-	printError("init grass 1");
-	program_grass = loadShaders("shaders/sphere.vert", "shaders/shark.frag");
-	glUseProgram(program_grass);
-	printError("init grass 2");
-	glUniformMatrix4fv(glGetUniformLocation(program_grass, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
-	printError("init grass 3");
+	program_1 = loadShaders("shaders/sphere.vert", "shaders/shark.frag");
+	glUseProgram(program_1);
+	glUniformMatrix4fv(glGetUniformLocation(program_1, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+	glUniform4fv(glGetUniformLocation(program_1, "skyColor"), 1, &skyColor); // Fog effect
+	printError("init seahorse");
 }
 
 void draw_terrain(vec3 cameraPos, mat4 total, GLfloat time)
@@ -87,10 +95,7 @@ float getFogFactor(vec3 p1, vec3 p2)
 		float dy = p1.y - p2.y;
 		float dz = p1.z - p2.z;
 		float d = sqrt(dx*dx + dy*dy + dz*dz);
-
-		// printf("d %f", d);
-    const float FogMax = 100.0;
-    const float FogMin = 1.0;
+  
     if (d>=FogMax) return 1;
     if (d<=FogMin) return 0;
     return 1 - (FogMax - d) / (FogMax - FogMin);
@@ -127,20 +132,20 @@ void draw_grass(mat4 total, vec3 cameraPos, GLfloat time)
 	mat4 scale = S(scale_fact, scale_fact,scale_fact);
 
 	// GLfloat view = getFogFactor(cameraPos, pos);
-	glUseProgram(program_grass);
+	glUseProgram(program_1);
 
 	for (int i = 0; i < 3; i++) 
 	{
 		vec3 pos = {120.0f + i*3, getHeight(100.0f, 100.0f) + 1.6f + sin(time/1000)/2, 100.0f};
 		mat4 transform = T(pos.x, pos.y, pos.z);
 		mat4 res = Mult(transform, scale);
-		// glUniform1f(glGetUniformLocation(program_grass, "t"), time);
+		// glUniform1f(glGetUniformLocation(program_1, "t"), time);
 		GLfloat visibility = getFogFactor(cameraPos, pos);
-		glUniform1f(glGetUniformLocation(program_grass, "visibility"), visibility);
-		glUniform1i(glGetUniformLocation(program_grass, "sharkID"), i);
-		glUniformMatrix4fv(glGetUniformLocation(program_grass, "view"), 1, GL_TRUE, total.m);
-		glUniformMatrix4fv(glGetUniformLocation(program_grass, "sphereMatrix"), 1, GL_TRUE, res.m);
-		DrawModel(grass, program_grass, "inPosition", "inNormal", "inTexCoord");
+		glUniform1f(glGetUniformLocation(program_1, "visibility"), visibility);
+		glUniform1i(glGetUniformLocation(program_1, "sharkID"), i);
+		glUniformMatrix4fv(glGetUniformLocation(program_1, "view"), 1, GL_TRUE, total.m);
+		glUniformMatrix4fv(glGetUniformLocation(program_1, "sphereMatrix"), 1, GL_TRUE, res.m);
+		DrawModel(grass, program_1, "inPosition", "inNormal", "inTexCoord");
 	}
 
 }
@@ -210,6 +215,7 @@ vec3 return_fish_pos(vec3 cameraPos, vec3 cameraFront, vec3 cameraUp){
 	vec3 pos = {Rx_init, Ry_init, Rz_init};
 	return pos;
 }
+
 void draw_fish(mat4 camMatrix, vec3 cameraPos, vec3 cameraFront, vec3 cameraUp, GLfloat time) 
 {
 	mat4 fish_scale, fish_res, fish_transform, fish_direction;
@@ -320,7 +326,7 @@ Model *GenerateTerrain(TextureData *tex)
 		{
 			// Vertex array. You need to scale this properly
 			vertexArray[(x + z * tex->width) * 3 + 0] = scaling_factor * x / 1.0;
-			vertexArray[(x + z * tex->width) * 3 + 1] = scaling_factor * tex->imageData[(x + z * tex->width) * (tex->bpp / 8)] / 60.0;
+			vertexArray[(x + z * tex->width) * 3 + 1] = scaling_factor * tex->imageData[(x + z * tex->width) * (tex->bpp / 8)] / terrain_height_control;
 			vertexArray[(x + z * tex->width) * 3 + 2] = scaling_factor * z / 1.0;
 			// Texture coordinates. You may want to scale them.
 			texCoordArray[(x + z * tex->width) * 2 + 0] = x; // (float)x / tex->width;
